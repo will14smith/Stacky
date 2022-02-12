@@ -37,7 +37,7 @@ public class CompilerIntrinsics
             { ">", Greater },
             
             { "concat", StringConcat },
-            { "toString", ToString },
+            { "string", String },
             { "print", Print },
             { "invoke", Invoke },
             
@@ -131,7 +131,7 @@ public class CompilerIntrinsics
         return stack.Push(buffer);
     }
 
-    private CompilerStack ToString(CompilerStack stack)
+    private CompilerStack String(CompilerStack stack)
     {
         var type = stack.PeekType();
 

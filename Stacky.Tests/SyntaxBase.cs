@@ -19,10 +19,16 @@ public class SyntaxBase
     
     protected static SyntaxFunction Parse(string code)
     {
-        var parser = new Parser("test", code);
-        var program = parser.Parse();
+        var program = ParseProgram(code);
 
         program.Functions.Should().HaveCount(1);
         return program.Functions[0];
     }
+    
+    protected static SyntaxProgram ParseProgram(string code)
+    {
+        var parser = new Parser("test", code);
+        return parser.Parse();
+    }
+
 }

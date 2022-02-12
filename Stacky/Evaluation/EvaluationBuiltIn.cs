@@ -14,7 +14,7 @@ public class EvaluationBuiltIn
         { "*", IntBinary((a, b) => a * b) },
         { ">", IntBinary((a, b) => a > b) },
         { "concat", StringConcat },
-        { "toString", ToString },
+        { "string", String },
         { "print", Print },
         { "invoke", Invoke },
         
@@ -95,7 +95,7 @@ public class EvaluationBuiltIn
         return state.Push(new EvaluationValue.String($"{aStr.Value}{bStr.Value}"));
     }
     
-    private static EvaluationState ToString(EvaluationState state)
+    private static EvaluationState String(EvaluationState state)
     {
         state = state.Pop(out var a);
 
