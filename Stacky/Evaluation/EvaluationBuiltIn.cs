@@ -2,7 +2,7 @@
 
 public class EvaluationBuiltIn
 {
-    public delegate EvaluationState BuiltIn(EvaluationState stack);
+    public delegate EvaluationState BuiltIn(EvaluationState state);
     
     public static readonly IReadOnlyDictionary<string, BuiltIn> Map = new Dictionary<string, BuiltIn>
     {
@@ -12,6 +12,12 @@ public class EvaluationBuiltIn
         { "toString", ToString },
         { "print", Print },
         { "invoke", Invoke },
+        
+        {  "if", EvaluationFlow.If },
+        {  "if-else", EvaluationFlow.IfElse },
+        
+        { "true", s => s.Push(new EvaluationValue.Boolean(true)) },
+        { "false", s => s.Push(new EvaluationValue.Boolean(false)) },
     };
     
     public static BuiltIn Int2(Func<long, long, long> calculation)
