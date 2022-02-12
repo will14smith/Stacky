@@ -4,7 +4,7 @@ namespace Stacky.Parsing;
 
 public partial class Parser
 {
-    private SyntaxFunction ParseFunction(ref State state)
+    private static SyntaxFunction ParseFunction(ref State state)
     {
         var start = state.Location;
 
@@ -19,5 +19,19 @@ public partial class Parser
 
         var position = state.PositionFromStart(start);
         return new SyntaxFunction(position, name, type, body);
+    }
+
+    private static SyntaxExpression ParseAnonymousFunction(ref State state)
+    {
+        var start = state.Location;
+
+        Consume(ref state, '{');
+
+        var body = ParseExpression(ref state);
+        
+        Consume(ref state, '}');
+
+        var position = state.PositionFromStart(start);
+        return new SyntaxExpression.Function(position, body);
     }
 }

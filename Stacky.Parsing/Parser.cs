@@ -16,7 +16,7 @@ public partial class Parser
     public SyntaxProgram Parse() => ParseProgram(NewState());
     
 
-    private SyntaxProgram ParseProgram(Parser.State state)
+    private SyntaxProgram ParseProgram(State state)
     {
         var start = state.Location;
         var functions = new List<SyntaxFunction>();
@@ -33,7 +33,7 @@ public partial class Parser
         return new SyntaxProgram(position, functions);
     }
 
-    private static bool Peek(ref Parser.State state, Func<object, bool> predicate, bool skipWhiteSpace = true)
+    private static bool Peek(ref State state, Func<object, bool> predicate, bool skipWhiteSpace = true)
     {
         if (state.IsEof)
         {
@@ -48,8 +48,8 @@ public partial class Parser
         return predicate(state.Current);
     }
     
-    private static void Consume(ref Parser.State state, char expected, bool skipWhiteSpace = true) => Consume(ref state, c => c == expected, $"Expected '{expected}'", skipWhiteSpace);
-    private static void Consume(ref Parser.State state, Func<char, bool> predicate, string message, bool skipWhiteSpace = true)
+    private static void Consume(ref State state, char expected, bool skipWhiteSpace = true) => Consume(ref state, c => c == expected, $"Expected '{expected}'", skipWhiteSpace);
+    private static void Consume(ref State state, Func<char, bool> predicate, string message, bool skipWhiteSpace = true)
     {
         if (!TryConsume(ref state, predicate, skipWhiteSpace))
         {
@@ -57,8 +57,8 @@ public partial class Parser
         }
     }
     
-    private static bool TryConsume(ref Parser.State state, char expected, bool skipWhiteSpace = true) => TryConsume(ref state, c => c == expected, skipWhiteSpace);
-    private static bool TryConsume(ref Parser.State state, Func<char, bool> predicate, bool skipWhiteSpace = true)
+    private static bool TryConsume(ref State state, char expected, bool skipWhiteSpace = true) => TryConsume(ref state, c => c == expected, skipWhiteSpace);
+    private static bool TryConsume(ref State state, Func<char, bool> predicate, bool skipWhiteSpace = true)
     {
         if (state.IsEof)
         {
@@ -80,15 +80,15 @@ public partial class Parser
         return true;
     }
     
-    private static Exception Error(Parser.State state, string message)
+    private static Exception Error(State state, string message)
     {
         return new Exception($"{message} at {state.Location}");
     }
-    private static Exception Error(Parser.State state, SyntaxLocation location, string message)
+    private static Exception Error(State state, SyntaxLocation location, string message)
     {
         return new Exception($"{message} at {location}");
     }
-    private static Exception Error(Parser.State state, SyntaxPosition position, string message)
+    private static Exception Error(State state, SyntaxPosition position, string message)
     {
         return new Exception($"{message} at {position}");
     }

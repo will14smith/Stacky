@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Stacky.Tests;
 
-public class FunctionSyntax
+public class FunctionSyntax : SyntaxBase
 {
     [Fact]
     public void NoInputsOrOutputs_ShouldParse()
@@ -136,14 +136,5 @@ public class FunctionSyntax
         var parse = () => Parse(code);
 
         parse.Should().Throw<Exception>();
-    }
-
-    private static SyntaxFunction Parse(string code)
-    {
-        var parser = new Parser("test", code);
-        var program = parser.Parse();
-
-        program.Functions.Should().HaveCount(1);
-        return program.Functions[0];
     }
 }

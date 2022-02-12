@@ -1,19 +1,18 @@
 ﻿using System;
 using FluentAssertions;
-using Stacky.Parsing;
 using Stacky.Parsing.Syntax;
 using Xunit;
 
 namespace Stacky.Tests;
 
-public class ExpressionSyntax
+public class ExpressionSyntax : SyntaxBase
 {
     [Fact]
     public void StringLiteral_ShouldParse()
     {
         var code = "\"str\"";
 
-        var expr = Parse<SyntaxExpression.LiteralString>(code);
+        var expr = ParseExpr<SyntaxExpression.LiteralString>(code);
 
         expr.Value.Should().Be("str");
     }
@@ -23,7 +22,7 @@ public class ExpressionSyntax
     {
         var code = "\"\\\"\\n\"";
 
-        var expr = Parse<SyntaxExpression.LiteralString>(code);
+        var expr = ParseExpr<SyntaxExpression.LiteralString>(code);
 
         expr.Value.Should().Be("str");
     }
@@ -33,7 +32,7 @@ public class ExpressionSyntax
     {
         var code = "123";
 
-        var expr = Parse<SyntaxExpression.LiteralInteger>(code);
+        var expr = ParseExpr<SyntaxExpression.LiteralInteger>(code);
 
         expr.Value.Should().Be(123);
     }  
@@ -42,7 +41,7 @@ public class ExpressionSyntax
     {
         var code = "-123";
 
-        var expr = Parse<SyntaxExpression.LiteralInteger>(code);
+        var expr = ParseExpr<SyntaxExpression.LiteralInteger>(code);
 
         expr.Value.Should().Be(-123);
     }
@@ -52,7 +51,7 @@ public class ExpressionSyntax
     {
         var code = "abc";
 
-        var expr = Parse<SyntaxExpression.Identifier>(code);
+        var expr = ParseExpr<SyntaxExpression.Identifier>(code);
 
         expr.Value.Should().Be("abc");
     }
@@ -68,7 +67,7 @@ public class ExpressionSyntax
     {
         var code = identifier;
 
-        var expr = Parse<SyntaxExpression.Identifier>(code);
+        var expr = ParseExpr<SyntaxExpression.Identifier>(code);
 
         expr.Value.Should().Be(identifier);
     }
@@ -78,7 +77,7 @@ public class ExpressionSyntax
     {
         var code = "123 \"a\" hello";
 
-        var expr = Parse<SyntaxExpression.Application>(code);
+        var expr = ParseExpr<SyntaxExpression.Application>(code);
 
         expr.Expressions.Should().HaveCount(3);
         expr.Expressions[0].Should().BeOfType<SyntaxExpression.LiteralInteger>();
@@ -91,7 +90,7 @@ public class ExpressionSyntax
     {
         var code = "- 123";
 
-        var expr = Parse<SyntaxExpression.Application>(code);
+        var expr = ParseExpr<SyntaxExpression.Application>(code);
 
         expr.Expressions.Should().HaveCount(2);
         expr.Expressions[0].Should().BeOfType<SyntaxExpression.Identifier>();
@@ -103,22 +102,8 @@ public class ExpressionSyntax
     {
         var code = "\"a";
 
-        var parse = () => Parse(code);
+        var parse = () => ParseExpr(code);
 
         parse.Should().Throw<Exception>();
-    }
-    
-    private static T Parse<T>(string exprCode) where T : SyntaxExpression =>
-        Parse(exprCode).Should().BeOfType<T>().Subject;
-
-    private static SyntaxExpression Parse(string exprCode)
-    {
-        var code = $"run () -> () {{ {exprCode} }}";
-        
-        var parser = new Parser("test", code);
-        var program = parser.Parse();
-
-        program.Functions.Should().HaveCount(1);
-        return program.Functions[0].Body;
     }
 }

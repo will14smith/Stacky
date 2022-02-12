@@ -4,7 +4,7 @@ namespace Stacky.Parsing;
 
 public partial class Parser
 {
-    private SyntaxType ParseType(ref State state)
+    private static SyntaxType ParseType(ref State state)
     {
         if (TryConsume(ref state, '('))
         {
@@ -35,7 +35,7 @@ public partial class Parser
         };
     }
 
-    private SyntaxType.Function ParseTypeFunction(ref State state)
+    private static SyntaxType.Function ParseTypeFunction(ref State state)
     {
         var start = state.Location;
         var input = ParseTypeList(ref state);
@@ -49,7 +49,7 @@ public partial class Parser
         return new SyntaxType.Function(position, input, output);
     }
 
-    private IReadOnlyList<SyntaxType> ParseTypeList(ref State state)
+    private static IReadOnlyList<SyntaxType> ParseTypeList(ref State state)
     {
         var types = new List<SyntaxType>();
         

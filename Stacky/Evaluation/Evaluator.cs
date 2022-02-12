@@ -33,7 +33,7 @@ public class Evaluator
 
             SyntaxExpression.Application application => RunApplication(state, application),
             SyntaxExpression.Identifier identifier => RunIdentifier(state, identifier),
-            SyntaxExpression.Conditional conditional => throw new NotImplementedException(),
+            
             _ => throw new ArgumentOutOfRangeException(nameof(expr))
         };
     

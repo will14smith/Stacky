@@ -17,7 +17,7 @@ public partial class Parser
         public State(string name, string code)
         {
             _offset = 0;
-            _line = (0, 0);
+            _line = (1, 0);
 
             _name = name;
             _code = code;

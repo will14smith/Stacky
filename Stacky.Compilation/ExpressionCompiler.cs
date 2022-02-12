@@ -25,7 +25,6 @@ public class ExpressionCompiler
 
             SyntaxExpression.Application application => CompileApplication(stack, application),
             SyntaxExpression.Identifier identifier => CompileIdentifier(stack, identifier),
-            SyntaxExpression.Conditional conditional => throw new NotImplementedException(),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };

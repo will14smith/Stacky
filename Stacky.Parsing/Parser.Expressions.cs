@@ -47,6 +47,12 @@ public partial class Parser
             return true;
         }
 
+        if (current == '{')
+        {
+            expression = ParseAnonymousFunction(ref state);
+            return true;
+        }
+
         if (IsIdentifierStart(current))
         {
             expression = ParseIdentifier(ref state);
