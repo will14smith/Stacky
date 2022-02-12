@@ -10,14 +10,13 @@ public partial class CompilerEmitter
         var block = L.AppendBasicBlockInContext(_context, functionRef.Value, "block");
 
         L.PositionBuilderAtEnd(_builder, block);
-
+        
         return new CompilerLabel(block);
     }
 
     public CompilerValue DefineFunction(string name, CompilerType.Function type)
     {
-        var functionType =
-            LLVMTypeRef.FunctionType(LLVMTypeRef.VoidTypeInContext(_context), Array.Empty<LLVMTypeRef>(), false);
+        var functionType = LLVMTypeRef.FunctionType(LLVMTypeRef.VoidTypeInContext(_context), Array.Empty<LLVMTypeRef>(), false);
 
         var functionRef = L.AddFunction(_module, name, functionType);
         L.SetLinkage(functionRef, LLVMLinkage.LLVMExternalLinkage);

@@ -33,6 +33,7 @@ public class CompilerIntrinsics
             { "concat", StringConcat },
             { "toString", ToString },
             { "print", Print },
+            { "invoke", Invoke },
         };
     }
     
@@ -148,5 +149,12 @@ public class CompilerIntrinsics
         removeRoot();
         
         return stack;
+    }
+    
+    private CompilerStack Invoke(CompilerStack stack)
+    {
+        stack = stack.Pop<CompilerType.Function>(out var value, out _);
+
+        return ExpressionCompiler.CallFunction(_emitter, stack, value);
     }
 }
