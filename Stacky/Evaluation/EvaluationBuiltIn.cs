@@ -2,16 +2,19 @@
 
 public class EvaluationBuiltIn
 {
-    public static readonly IReadOnlyDictionary<string, Func<EvaluationState, EvaluationState>> Map = new Dictionary<string, Func<EvaluationState, EvaluationState>>
+    public delegate EvaluationState BuiltIn(EvaluationState stack);
+    
+    public static readonly IReadOnlyDictionary<string, BuiltIn> Map = new Dictionary<string, BuiltIn>
     {
         { "+", Int2((a, b) => a + b) },
         { "*", Int2((a, b) => a * b) },
         { "concat", StringConcat },
         { "toString", ToString },
         { "print", Print },
+        { "invoke", Invoke },
     };
     
-    public static Func<EvaluationState, EvaluationState> Int2(Func<long, long, long> calculation)
+    public static BuiltIn Int2(Func<long, long, long> calculation)
     {
         return state =>
         {
@@ -76,5 +79,17 @@ public class EvaluationBuiltIn
         }
         
         return state;
+    }
+    
+    private static EvaluationState Invoke(EvaluationState state)
+    {
+        state = state.Pop(out var a);
+
+        if (a is not EvaluationValue.Function function)
+        {
+            throw new InvalidCastException($"Expected arg 0 to be Function but got {a}");
+        }
+
+        return Evaluator.RunExpression(state, function.Body);
     }
 }

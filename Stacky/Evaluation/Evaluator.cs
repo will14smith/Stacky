@@ -25,12 +25,13 @@ public class Evaluator
     
     private static EvaluationState RunFunction(EvaluationState state, SyntaxFunction function) => RunExpression(state, function.Body);
 
-    private static EvaluationState RunExpression(EvaluationState state, SyntaxExpression expr) =>
+    internal static EvaluationState RunExpression(EvaluationState state, SyntaxExpression expr) =>
         expr switch
         {
             SyntaxExpression.LiteralInteger literal => state.Push(new EvaluationValue.Int64(literal.Value)),
             SyntaxExpression.LiteralString literal => state.Push(new EvaluationValue.String(literal.Value)),
-
+            SyntaxExpression.Function function => state.Push(new EvaluationValue.Function(function.Body)),
+            
             SyntaxExpression.Application application => RunApplication(state, application),
             SyntaxExpression.Identifier identifier => RunIdentifier(state, identifier),
             
