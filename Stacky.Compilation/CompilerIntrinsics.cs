@@ -28,14 +28,23 @@ public class CompilerIntrinsics
 
         _map = new Dictionary<string, Intrinsic>
         {
+            { "drop", Drop },
+            { "dup", Duplicate },
+            
             { "+", Add },
+            { "-", Sub },
             { "*", Mul },
+            { ">", Greater },
+            
             { "concat", StringConcat },
             { "toString", ToString },
             { "print", Print },
             { "invoke", Invoke },
+            
             { "if", If },
             { "if-else", IfElse },
+            { "while", While },
+            
             { "true", True },
             { "false", False },
         };
@@ -52,6 +61,22 @@ public class CompilerIntrinsics
         return true;
     }
     
+    private CompilerStack Drop(CompilerStack stack)
+    {
+        stack = stack.Pop(out _, out var removeRoot);
+        removeRoot();
+        return stack;
+    }
+
+    private CompilerStack Duplicate(CompilerStack stack)
+    {
+        stack = stack.Pop(out var value, out var removeRoot);
+        stack = stack.Push(value);
+        stack = stack.Push(value);
+        removeRoot();
+        return stack;
+    }
+    
     private CompilerStack Add(CompilerStack stack)
     {
         stack = stack.Pop<CompilerType.Long>(out var b, out _);
@@ -59,13 +84,28 @@ public class CompilerIntrinsics
 
         return stack.Push(_emitter.Add(a, b));
     }  
+    private CompilerStack Sub(CompilerStack stack)
+    {
+        stack = stack.Pop<CompilerType.Long>(out var b, out _);
+        stack = stack.Pop<CompilerType.Long>(out var a, out _);
+
+        return stack.Push(_emitter.Sub(a, b));
+    }  
     private CompilerStack Mul(CompilerStack stack)
     {
         stack = stack.Pop<CompilerType.Long>(out var b, out _);
         stack = stack.Pop<CompilerType.Long>(out var a, out _);
 
         return stack.Push(_emitter.Mul(a, b));
-    }
+    }  
+    private CompilerStack Greater(CompilerStack stack)
+    {
+        stack = stack.Pop<CompilerType.Long>(out var b, out _);
+        stack = stack.Pop<CompilerType.Long>(out var a, out _);
+
+        return stack.Push(_emitter.Greater(a, b));
+    }  
+
 
     private CompilerStack StringConcat(CompilerStack stack)
     {
@@ -164,7 +204,22 @@ public class CompilerIntrinsics
     
     private CompilerStack If(CompilerStack stack)
     {
-        throw new NotImplementedException();
+        stack = stack.Pop<CompilerType.Function>(out var trueFunc, out _);
+        stack = stack.Pop<CompilerType.Boolean>(out var condition, out _);
+
+        var mergeBlock = _emitter.CreateBlockInCurrent("merge");
+        var trueBlock = _emitter.CreateBlockInCurrent("true");
+
+        _emitter.Branch(condition, trueBlock, mergeBlock);
+        
+        _emitter.BeginBlock(trueBlock);
+        var trueStack = ExpressionCompiler.CallFunction(_emitter, stack, trueFunc);
+        _emitter.Branch(mergeBlock);
+        
+        _emitter.BeginBlock(mergeBlock);
+        
+        // TODO assuming the true/not-taken stack are the same for now - typing inference will probably confirm this?
+        return trueStack;
     }
 
     private CompilerStack IfElse(CompilerStack stack)
@@ -191,6 +246,32 @@ public class CompilerIntrinsics
         
         // TODO assuming the true/false stack are the same for now - typing inference will probably confirm this?
         return trueStack;
+    }
+
+    private CompilerStack While(CompilerStack stack)
+    {
+        stack = stack.Pop<CompilerType.Function>(out var loopFunc, out _);
+        stack = stack.Pop<CompilerType.Function>(out var condFunc, out _);
+
+        var doneBlock = _emitter.CreateBlockInCurrent("done");
+        var condBlock = _emitter.CreateBlockInCurrent("cond");
+        var loopBlock = _emitter.CreateBlockInCurrent("loop");
+
+        _emitter.Branch(condBlock);
+        
+        _emitter.BeginBlock(loopBlock);
+        var loopStack = ExpressionCompiler.CallFunction(_emitter, stack, loopFunc);
+        _emitter.Branch(condBlock);
+        
+        _emitter.BeginBlock(condBlock);
+        var condStack = ExpressionCompiler.CallFunction(_emitter, stack, condFunc);
+        condStack = condStack.Pop<CompilerType.Boolean>(out var condition, out _);
+        _emitter.Branch(condition, loopBlock, doneBlock);
+
+        _emitter.BeginBlock(doneBlock);
+
+        // TODO assuming the cond/loop stacks aren't updating things - typing inference will probably confirm this?
+        return stack;
     }
 
     private CompilerStack True(CompilerStack stack) => stack.Push(_emitter.Literal(true));

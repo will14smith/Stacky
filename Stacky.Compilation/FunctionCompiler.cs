@@ -61,9 +61,18 @@ public class FunctionCompiler
         var i = 0;
         foreach (var function in functions)
         {
-            // TODO this is hard coded for now until type inference is a thing
-            var type = new CompilerType.Function(new[] { new CompilerType.Long() }, new[] { new CompilerType.Long() });
+            // TODO this is hard coded for now until type inference is a thing (soon I promise!)
+            CompilerType.Function type;
+            if (function.Body is SyntaxExpression.Application app && app.Expressions.Last() is SyntaxExpression.Identifier id && id.Value == ">")
+            {
+                type = new CompilerType.Function(new[] { new CompilerType.Long() }, new CompilerType[] { new CompilerType.Long(), new CompilerType.Boolean() });
+            }
+            else
+            {
+                type = new CompilerType.Function(new[] { new CompilerType.Long() }, new[] { new CompilerType.Long() });
+            }
             
+
             var definition = _environment.DefineFunction($"__{_function.Name.Value}_anon<{i++}>", type);
             CompileFunction(definition, function.Body, mapping);
             
