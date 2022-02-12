@@ -5,13 +5,31 @@ namespace Stacky.Compilation.LLVM;
 
 public partial class CompilerEmitter
 {
-    public CompilerLabel BeginBlock(CompilerValue functionRef)
+    private CompilerLabel? _currentBlock;
+    
+    public CompilerLabel CreateBlock(CompilerValue functionRef, string name)
     {
-        var block = L.AppendBasicBlockInContext(_context, functionRef.Value, "block");
-
-        L.PositionBuilderAtEnd(_builder, block);
+        var block = L.AppendBasicBlockInContext(_context, functionRef.Value, name);
+     
+        return new CompilerLabel(block);
+    }    
+    public CompilerLabel CreateBlockInCurrent(string name)
+    {
+        if (_currentBlock == null)
+        {
+            throw new Exception("not in a function currently");
+        }
+        
+        var functionRef = L.GetBasicBlockParent(_currentBlock.Value.Block);
+        var block = L.AppendBasicBlockInContext(_context, functionRef, name);
         
         return new CompilerLabel(block);
+    }   
+    
+    public void BeginBlock(CompilerLabel label)
+    {
+        _currentBlock = label;
+        L.PositionBuilderAtEnd(_builder, label.Block);
     }
 
     public CompilerValue DefineFunction(string name, CompilerType.Function type)

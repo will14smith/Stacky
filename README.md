@@ -3,7 +3,6 @@
 A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
-- [ ] If
 - [ ] While
 - [ ] Type inference
 - [ ] Structs

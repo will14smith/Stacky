@@ -43,7 +43,9 @@ public class FunctionCompiler
 
         var compiler = new ExpressionCompiler(_emitter, _environment, _intrinsics, anonymousFunctionsMapping);
 
-        _emitter.BeginBlock(definition);
+        var entry = _emitter.CreateBlock(definition, "entry");
+        _emitter.BeginBlock(entry);
+        
         stack = compiler.Compile(stack, body);
 
         _emitter.RetVoid();

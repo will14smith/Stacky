@@ -13,7 +13,7 @@ using Stacky.Parsing;
 // mul3 i64 -> i64 { 3 * }
 // ";
 // var input = @"main () -> () { 1 { 1 + } invoke print }";
-var input = "main () -> () { true { 2 } { 1 } if-else print }";
+var input = "main () -> () { 1 false { 2 + } { 1 + } if-else print 1 true { 2 + } { 1 + } if-else print }";
 
 var parser = new Parser("input.st", input);
 var program = parser.Parse();

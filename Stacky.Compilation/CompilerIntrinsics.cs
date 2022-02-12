@@ -34,6 +34,10 @@ public class CompilerIntrinsics
             { "toString", ToString },
             { "print", Print },
             { "invoke", Invoke },
+            { "if", If },
+            { "if-else", IfElse },
+            { "true", True },
+            { "false", False },
         };
     }
     
@@ -157,4 +161,38 @@ public class CompilerIntrinsics
 
         return ExpressionCompiler.CallFunction(_emitter, stack, value);
     }
+    
+    private CompilerStack If(CompilerStack stack)
+    {
+        throw new NotImplementedException();
+    }
+
+    private CompilerStack IfElse(CompilerStack stack)
+    {
+        stack = stack.Pop<CompilerType.Function>(out var falseFunc, out _);
+        stack = stack.Pop<CompilerType.Function>(out var trueFunc, out _);
+        stack = stack.Pop<CompilerType.Boolean>(out var condition, out _);
+
+        var mergeBlock = _emitter.CreateBlockInCurrent("merge");
+        var trueBlock = _emitter.CreateBlockInCurrent("true");
+        var falseBlock = _emitter.CreateBlockInCurrent("false");
+
+        _emitter.Branch(condition, trueBlock, falseBlock);
+        
+        _emitter.BeginBlock(trueBlock);
+        var trueStack = ExpressionCompiler.CallFunction(_emitter, stack, trueFunc);
+        _emitter.Branch(mergeBlock);
+        
+        _emitter.BeginBlock(falseBlock);
+        var falseStack = ExpressionCompiler.CallFunction(_emitter, stack, falseFunc);
+        _emitter.Branch(mergeBlock);
+        
+        _emitter.BeginBlock(mergeBlock);
+        
+        // TODO assuming the true/false stack are the same for now - typing inference will probably confirm this?
+        return trueStack;
+    }
+
+    private CompilerStack True(CompilerStack stack) => stack.Push(_emitter.Literal(true));
+    private CompilerStack False(CompilerStack stack) => stack.Push(_emitter.Literal(false));
 }
