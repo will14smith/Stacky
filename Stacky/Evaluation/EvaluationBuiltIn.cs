@@ -6,8 +6,13 @@ public class EvaluationBuiltIn
     
     public static readonly IReadOnlyDictionary<string, BuiltIn> Map = new Dictionary<string, BuiltIn>
     {
-        { "+", Int2((a, b) => a + b) },
-        { "*", Int2((a, b) => a * b) },
+        { "drop", s => s.Pop(out _) },
+        { "dup", Duplicate },
+        
+        { "+", IntBinary((a, b) => a + b) },
+        { "-", IntBinary((a, b) => a - b) },
+        { "*", IntBinary((a, b) => a * b) },
+        { ">", IntBinary((a, b) => a > b) },
         { "concat", StringConcat },
         { "toString", ToString },
         { "print", Print },
@@ -15,12 +20,20 @@ public class EvaluationBuiltIn
         
         {  "if", EvaluationFlow.If },
         {  "if-else", EvaluationFlow.IfElse },
+        {  "while", EvaluationFlow.While },
         
         { "true", s => s.Push(new EvaluationValue.Boolean(true)) },
         { "false", s => s.Push(new EvaluationValue.Boolean(false)) },
     };
-    
-    public static BuiltIn Int2(Func<long, long, long> calculation)
+
+    private static EvaluationState Duplicate(EvaluationState state)
+    {
+        state = state.Pop(out var value);
+
+        return state.Push(value).Push(value);
+    }
+
+    public static BuiltIn IntBinary(Func<long, long, long> calculation)
     {
         return state =>
         {
@@ -41,6 +54,29 @@ public class EvaluationBuiltIn
             return state.Push(new EvaluationValue.Int64(result));
         };
     }
+    
+    public static BuiltIn IntBinary(Func<long, long, bool> calculation)
+    {
+        return state =>
+        {
+            state = state.Pop(out var b);
+            state = state.Pop(out var a);
+
+            if (a is not EvaluationValue.Int64 aInt)
+            {
+                throw new InvalidCastException($"Expected arg 0 to be Int64 but got {a}");
+            }
+
+            if (b is not EvaluationValue.Int64 bInt)
+            {
+                throw new InvalidCastException($"Expected arg 1 to be Int64 but got {b}");
+            }
+
+            var result = calculation(aInt.Value, bInt.Value);
+            return state.Push(new EvaluationValue.Boolean(result));
+        };
+    }
+
     
     private static EvaluationState StringConcat(EvaluationState state)
     {
