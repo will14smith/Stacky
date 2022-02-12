@@ -1,4 +1,5 @@
-﻿using Stacky.Parsing.Syntax;
+﻿using System.Collections.Immutable;
+using Stacky.Parsing.Syntax;
 
 namespace Stacky.Evaluation;
 
@@ -11,12 +12,15 @@ public class Evaluator
         _program = program;
     }
 
-    public void Run()
+    public ImmutableStack<EvaluationValue> Run() => Run(ImmutableStack<EvaluationValue>.Empty);
+    public ImmutableStack<EvaluationValue> Run(ImmutableStack<EvaluationValue> initial)
     {
-        var state = new EvaluationState(_program);
+        var state = new EvaluationState(_program, initial);
         var function = state.GetFunction("main");
 
-        RunFunction(state, function);
+        state = RunFunction(state, function);
+
+        return state.Stack;
     }
     
     private static EvaluationState RunFunction(EvaluationState state, SyntaxFunction function) => RunExpression(state, function.Body);

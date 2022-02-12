@@ -6,15 +6,16 @@ namespace Stacky.Evaluation;
 public class EvaluationState
 {
     private readonly SyntaxProgram _program;
-    private readonly ImmutableStack<EvaluationValue> _stack;
+    public ImmutableStack<EvaluationValue> Stack { get; }
 
     public EvaluationState(SyntaxProgram program) : this(program, ImmutableStack<EvaluationValue>.Empty) { }
 
-    private EvaluationState(SyntaxProgram program, ImmutableStack<EvaluationValue> stack)
+    public EvaluationState(SyntaxProgram program, ImmutableStack<EvaluationValue> stack)
     {
         _program = program;
-        _stack = stack;
+        Stack = stack;
     }
+
 
     public SyntaxFunction GetFunction(string name)
     {
@@ -23,11 +24,11 @@ public class EvaluationState
 
     public EvaluationState Push(EvaluationValue value)
     {
-        return new EvaluationState(_program, _stack.Push(value));
+        return new EvaluationState(_program, Stack.Push(value));
     }      
     public EvaluationState Pop(out EvaluationValue value)
     {
-        var stack = _stack.Pop(out value);
+        var stack = Stack.Pop(out value);
 
         return new EvaluationState(_program, stack);
     }

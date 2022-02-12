@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Stacky.Parsing\Stacky.Parsing.csproj" />
+      <ProjectReference Include="..\Stacky\Stacky.csproj" />
     </ItemGroup>
 
 </Project>
