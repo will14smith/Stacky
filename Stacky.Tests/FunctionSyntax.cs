@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Stacky.Language.Parsing;
-using Stacky.Language.Syntax;
+using Stacky.Parsing;
+using Stacky.Parsing.Syntax;
 using Xunit;
 
 namespace Stacky.Tests;

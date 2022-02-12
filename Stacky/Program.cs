@@ -1,8 +1,6 @@
-﻿using Stacky.Language.Compilation;
-using Stacky.Language.Evaluation;
-using Stacky.Language.Parsing;
-
-
+﻿using Stacky.Compilation;
+using Stacky.Evaluation;
+using Stacky.Parsing;
 
 // var input = @"main () -> () { ""aaaaaaaaaaaaaaaaaaaaaaaaaaaa"" print }";
 // var input = @"main () -> () { 1 2 + print }";
