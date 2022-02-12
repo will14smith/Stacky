@@ -3,7 +3,6 @@
 A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
-- [ ] Update function syntax
 - [ ] If
 - [ ] While
 - [ ] Type inference
@@ -33,7 +32,7 @@ The stack ordering is right to left, so the second integer parameter is at the t
 Primitive types for the language are:
 - `bool`
 - `i8`
-- `u8` / `byte` 
+- `u8`
 - `i16`
 - `u16`
 - `i32`
@@ -41,7 +40,7 @@ Primitive types for the language are:
 - `i64`
 - `u64`
 - `str`
-- `func`
+- `func` (see the Functions section)
 
 User defined structs can also be created
 

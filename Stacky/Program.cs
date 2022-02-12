@@ -4,15 +4,15 @@ using Stacky.Language.Parsing;
 
 
 
-// var input = @"() main () { ""aaaaaaaaaaaaaaaaaaaaaaaaaaaa"" print }";
-// var input = @"() main () { 1 2 + print }";
-// var input = @"() main () { 1 2 + toString ""a"" concat print }";
+// var input = @"main () -> () { ""aaaaaaaaaaaaaaaaaaaaaaaaaaaa"" print }";
+// var input = @"main () -> () { 1 2 + print }";
+// var input = @"main () -> () { 1 2 + toString ""a"" concat print }";
 var input = @"
-() main () {
+main () -> () {
     1 mul3 2 + toString ""a"" concat print
 }
 
-i64 mul3 i64 { 3 * }
+mul3 i64 -> i64 { 3 * }
 ";
 
 var parser = new Parser("input.st", input);

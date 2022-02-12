@@ -33,6 +33,21 @@ public partial class Parser
         return new SyntaxProgram(position, functions);
     }
 
+    private static bool Peek(ref State state, Func<object, bool> predicate, bool skipWhiteSpace = true)
+    {
+        if (state.IsEof)
+        {
+            return false;
+        }
+
+        if (skipWhiteSpace)
+        {
+            state = state.SkipWhiteSpace();
+        }
+
+        return predicate(state.Current);
+    }
+    
     private static void Consume(ref State state, char expected, bool skipWhiteSpace = true) => Consume(ref state, c => c == expected, $"Expected '{expected}'", skipWhiteSpace);
     private static void Consume(ref State state, Func<char, bool> predicate, string message, bool skipWhiteSpace = true)
     {

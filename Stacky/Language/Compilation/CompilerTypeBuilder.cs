@@ -12,11 +12,11 @@ public class CompilerTypeBuilder
         return new CompilerType.Function(inputs, outputs);
     }
     
-    public CompilerType Build(SyntaxTypeReference typeRef)
+    public CompilerType Build(SyntaxType type)
     {
-        return typeRef.Type switch
+        return type switch
         {
-            SyntaxType.Integer(var signed, var size) => size switch
+            SyntaxType.Integer(_, var signed, var size) => size switch
             {
                 SyntaxType.IntegerSize.S64 => signed ? new CompilerType.Long() : throw new NotImplementedException(),
                 

@@ -1,12 +1,12 @@
 ﻿namespace Stacky.Language.Syntax;
 
-public record SyntaxTypeReference(SyntaxPosition Position, SyntaxType Type) : SyntaxElement(Position);
-
-public record SyntaxType
+public abstract record SyntaxType(SyntaxPosition Position) : SyntaxElement(Position)
 {
-    public record Integer(bool Signed, IntegerSize Size) : SyntaxType;
-    public record String : SyntaxType;
-
+    public record Boolean(SyntaxPosition Position) : SyntaxType(Position);
+    public record Integer(SyntaxPosition Position, bool Signed, IntegerSize Size) : SyntaxType(Position);
+    public record String(SyntaxPosition Position) : SyntaxType(Position);
+    public record Function(SyntaxPosition Position, IReadOnlyList<SyntaxType> Input, IReadOnlyList<SyntaxType> Output) : SyntaxType(Position);
+    
     public enum IntegerSize
     {
         S8,
