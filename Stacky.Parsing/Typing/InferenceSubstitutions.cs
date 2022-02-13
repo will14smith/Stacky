@@ -54,25 +54,15 @@ public class InferenceSubstitutions
 
     internal static StackyType Apply(IReadOnlyDictionary<int, StackyType> substitutions, StackyType type)
     {
-        if (type is StackyType.Variable variable)
+        return type switch
         {
-            if (substitutions.TryGetValue(variable.Id, out var variableReplacement))
-            {
-                return variableReplacement;
-            }
-        }
-
-        if (type is StackyType.Function function)
-        {
-            return new StackyType.Function(Apply(substitutions, function.Input), Apply(substitutions, function.Output));
-        }
-
-        if (type is StackyType.Composite composite)
-        {
-            var types = composite.Types.Select(t => Apply(substitutions, t)).ToArray();
-            return StackyType.MakeComposite(types);
-        }
-        
-        return type;
+            StackyType.Variable variable when substitutions.TryGetValue(variable.Id, out var variableReplacement) => variableReplacement,
+            StackyType.Function function => new StackyType.Function(Apply(substitutions, function.Input), Apply(substitutions, function.Output)),
+            StackyType.Composite composite => StackyType.MakeComposite(composite.Types.Select(t => Apply(substitutions, t)).ToArray()),
+            StackyType.Getter getter => StackyType.MakeGetter(Apply(substitutions, getter.StructType), getter.FieldName),
+            StackyType.Setter setter => StackyType.MakeSetter(Apply(substitutions, setter.StructType), setter.FieldName),
+            
+            _ => type
+        };
     }
 }

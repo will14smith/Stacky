@@ -4,8 +4,8 @@ A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
 - [X] Structs - Parsing definitions
-- [ ] Structs - Parsing init/getter/setter
-- [ ] Structs - Type inference
+- [X] Structs - Parsing init/getter/setter
+- [X] Structs - Type inference
 - [ ] Structs - Evaluating init/getter/setter
 - [ ] Structs - Compiling init/getter/setter
 - [ ] Type inference - Errors should link to syntax 

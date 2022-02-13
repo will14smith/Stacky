@@ -35,4 +35,16 @@ public class InferenceState
     
     private InferenceState WithVariables(ImmutableList<StackyType.Variable> variables) => new(Program, variables, _constraints);
     private InferenceState WithConstraints(ImmutableList<InferenceConstraint> constraints) => new(Program, _variables, constraints);
+
+    public SyntaxStruct LookupStruct(string structName)
+    {
+        var structDef = Program.Structs.FirstOrDefault(x => x.Name.Value == structName);
+        
+        if (structDef == null)
+        {
+            throw new TypeInferenceException($"Failed to find struct '{structName}' to initialise");
+        }
+        
+        return structDef;
+    }
 }

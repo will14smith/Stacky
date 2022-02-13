@@ -23,7 +23,7 @@ public class InferenceBuilder
         var body = Build(ref state, function.Body);
         var type = body.Type as StackyType.Function ?? new StackyType.Function(new StackyType.Void(), body.Type);
 
-        var funcType = ToType(function);
+        var funcType = ToType(state, function);
 
         state = state
             .Unify(funcType.Input, type.Input)
@@ -32,15 +32,23 @@ public class InferenceBuilder
         return new TypedFunction(function, type, body);
     }
 
-    private static StackyType.Function ToType(SyntaxFunction function)
+    private static StackyType.Function ToType(InferenceState state, SyntaxFunction function)
     {
-        var input = StackyType.MakeComposite(function.Input.Select(ToType).ToArray());
-        var output = StackyType.MakeComposite(function.Output.Select(ToType).ToArray());
+        var input = StackyType.MakeComposite(function.Input.Select(t => ToType(state, t)).ToArray());
+        var output = StackyType.MakeComposite(function.Output.Select(t => ToType(state, t)).ToArray());
         
         return new StackyType.Function(input, output);
     }
+    
+    private static StackyType ToType(InferenceState state, SyntaxStruct structDef)
+    {
+        var fields = structDef.Fields.Select(x => (x.Name.Value, ToType(state, x.Type))).ToList();
+        
+        return new StackyType.Struct(structDef.Name.Value, fields);
+    }
 
-    private static StackyType ToType(SyntaxType type)
+
+    private static StackyType ToType(InferenceState state, SyntaxType type)
     {
         return type switch
         {
@@ -49,8 +57,10 @@ public class InferenceBuilder
             SyntaxType.String => new StackyType.String(),
             
             SyntaxType.Function function => new StackyType.Function(
-                StackyType.MakeComposite(function.Input.Select(ToType).ToArray()), 
-                StackyType.MakeComposite(function.Output.Select(ToType).ToArray())),
+                StackyType.MakeComposite(function.Input.Select(t => ToType(state, t)).ToArray()), 
+                StackyType.MakeComposite(function.Output.Select(t => ToType(state, t)).ToArray())),
+            
+            SyntaxType.Struct structRef => ToType(state, state.LookupStruct(structRef.Name)),
             
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
@@ -112,6 +122,16 @@ public class InferenceBuilder
     
     private static TypedExpression BuildIdentifier(ref InferenceState state, SyntaxExpression.Identifier identifier)
     {
+        if (identifier.Value.Length > 1)
+        {
+            switch (identifier.Value[0])
+            {
+                case '@': return BuildInit(ref state, identifier);                
+                case '#': return BuildGetter(ref state, identifier);                
+                case '~': return BuildSetter(ref state, identifier);                
+            }
+        }
+        
         if (InferenceIntrinsics.TryInfer(identifier.Value, out var handler))
         {
             state = handler!(state, out var type);
@@ -125,10 +145,54 @@ public class InferenceBuilder
             throw new Exception($"unknown identifier: {identifier}");
         }
         
-        var functionType = ToType(function);
+        var functionType = ToType(state, function);
         return new TypedExpression.Identifier(identifier, functionType);
     }
+
+    private static TypedExpression BuildInit(ref InferenceState state, SyntaxExpression.Identifier identifier)
+    {
+        var structName = identifier.Value[1..];
+        var structDef = state.LookupStruct(structName);
+        if (structDef == null)
+        {
+            throw new TypeInferenceException($"Failed to find struct '{structName}' to initialise");
+        }
+
+        var type = ToType(state, structDef);
+        
+        return new TypedExpression.Identifier(identifier, type);
+    }
     
+    private static TypedExpression BuildGetter(ref InferenceState state, SyntaxExpression.Identifier identifier)
+    {
+        var fieldName = identifier.Value[1..];
+
+        state = state.NewVariable(new StackySort.Gettable(fieldName), out var structType);
+
+        state = state.NewVariable(new StackySort.Any(), out var output);
+        state = state.Unify(output, StackyType.MakeGetter(structType, fieldName));
+        
+        var type = new StackyType.Function(structType, output);
+        
+        return new TypedExpression.Identifier(identifier, type);
+    }
+
+    private static TypedExpression BuildSetter(ref InferenceState state, SyntaxExpression.Identifier identifier)
+    {
+        var fieldName = identifier.Value[1..];
+
+        state = state.NewVariable(new StackySort.Settable(fieldName), out var structType);
+
+        state = state.NewVariable(new StackySort.Any(), out var value);
+        state = state.Unify(value, StackyType.MakeSetter(structType, fieldName));
+        
+        var input = StackyType.MakeComposite(structType, value);
+        
+        var type = new StackyType.Function(input, structType);
+        
+        return new TypedExpression.Identifier(identifier, type);
+    }
+
     private static TypedExpression BuildFunction(ref InferenceState state, SyntaxExpression.Function function)
     {
         var expr = Build(ref state, function.Body);

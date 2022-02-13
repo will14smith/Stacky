@@ -97,6 +97,5 @@ public class StructSyntax : SyntaxBase
         var field = type.Fields[0];
         field.Name.Value.Should().Be("a");
         field.Type.Should().BeEquivalentTo(new SyntaxType.Struct(SyntaxPosition.Empty, "Test1"), o => o.Excluding(s => s.Position));
-
     }
 }
