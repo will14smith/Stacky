@@ -6,6 +6,10 @@ public static class InferenceIntrinsics
 
     private static readonly IReadOnlyDictionary<string, Intrinsic> Map = new Dictionary<string, Intrinsic>
     {
+        { "drop", Drop },
+        { "dup", Duplicate },
+        { "invoke", Invoke },
+        
         { "+", MathOp },
         { "-", MathOp },
         { "*", MathOp },
@@ -18,11 +22,41 @@ public static class InferenceIntrinsics
     
     public static bool TryInfer(string name, out Intrinsic? intrinsic) => Map.TryGetValue(name, out intrinsic);
 
+    private static InferenceState Drop(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(null, out var input);
+
+        type = new StackyType.Function(input, new StackyType.Void());
+        
+        return state;
+    }
+
+    private static InferenceState Duplicate(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(null, out var input);
+
+        type = new StackyType.Function(input, StackyType.MakeComposite(input, input));
+        
+        return state;
+    }
+    
+    private static InferenceState Invoke(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(null, out var input);
+        state = state.NewVariable(null, out var output);
+
+        var fnType = new StackyType.Function(input, output);
+        
+        type = new StackyType.Function(StackyType.MakeComposite(input, fnType), output);
+        
+        return state;
+    }
+
     private static InferenceState MathOp(InferenceState state, out StackyType type)
     {
         state = state.NewVariable(new StackySort.Numeric(), out var input);
 
-        type = new StackyType.Function(new[] { input, input }, new[] { input });
+        type = new StackyType.Function(StackyType.MakeComposite(input, input), input);
         
         return state;
     }
@@ -31,7 +65,7 @@ public static class InferenceIntrinsics
     {
         state = state.NewVariable(new StackySort.Comparable(), out var input);
 
-        type = new StackyType.Function(new[] { input, input }, new[] { new StackyType.Boolean() });
+        type = new StackyType.Function(StackyType.MakeComposite(input, input), new StackyType.Boolean());
         
         return state;
     }
@@ -39,7 +73,9 @@ public static class InferenceIntrinsics
 
     private static InferenceState Concat(InferenceState state, out StackyType type)
     {
-        type = new StackyType.Function(new[] { new StackyType.String(), new StackyType.String() }, new [] { new StackyType.String() });
+        var str = new StackyType.String();
+        
+        type = new StackyType.Function(StackyType.MakeComposite(str, str), str);
         
         return state;
 
@@ -48,7 +84,7 @@ public static class InferenceIntrinsics
     {
         state = state.NewVariable(new StackySort.Printable(), out var input);
         
-        type = new StackyType.Function(new[] { input }, new [] { new StackyType.String() });
+        type = new StackyType.Function(input, new StackyType.String());
         
         return state;
     }   
@@ -56,7 +92,7 @@ public static class InferenceIntrinsics
     {
         state = state.NewVariable(new StackySort.Printable(), out var input);
         
-        type = new StackyType.Function(new[] { input }, Array.Empty<StackyType>());
+        type = new StackyType.Function(input, new StackyType.Void());
         
         return state;
     }

@@ -21,27 +21,23 @@ public class InferenceBuilder
     private static TypedFunction Build(ref InferenceState state, SyntaxFunction function)
     {
         var body = Build(ref state, function.Body);
-        var type = body.Type as StackyType.Function ?? new StackyType.Function(Array.Empty<StackyType>(), new[] { body.Type });
-        
-        if (function.Input.Count != type.Input.Count)
-        {
-            throw new Exception("different number of input types");
-        }
-        if (function.Output.Count != type.Output.Count)
-        {
-            throw new Exception("different number of output types");
-        }
-        
-        for (var i = 0; i < function.Input.Count; i++)
-        {
-            state = state.Unify(ToType(function.Input[i]), type.Input[i]);
-        }
-        for (var i = 0; i < function.Output.Count; i++)
-        {
-            state = state.Unify(ToType(function.Output[i]), type.Output[i]);
-        }
+        var type = body.Type as StackyType.Function ?? new StackyType.Function(new StackyType.Void(), body.Type);
+
+        var funcType = ToType(function);
+
+        state = state
+            .Unify(funcType.Input, type.Input)
+            .Unify(funcType.Output, type.Output);
 
         return new TypedFunction(function, type, body);
+    }
+
+    private static StackyType.Function ToType(SyntaxFunction function)
+    {
+        var input = StackyType.MakeComposite(function.Input.Select(ToType).ToArray());
+        var output = StackyType.MakeComposite(function.Output.Select(ToType).ToArray());
+        
+        return new StackyType.Function(input, output);
     }
 
     private static StackyType ToType(SyntaxType type)
@@ -52,7 +48,9 @@ public class InferenceBuilder
             SyntaxType.Integer integer => new StackyType.Integer(integer.Signed, integer.Size),
             SyntaxType.String => new StackyType.String(),
             
-            SyntaxType.Function function => new StackyType.Function(function.Input.Select(ToType).ToList(), function.Output.Select(ToType).ToList()),
+            SyntaxType.Function function => new StackyType.Function(
+                StackyType.MakeComposite(function.Input.Select(ToType).ToArray()), 
+                StackyType.MakeComposite(function.Output.Select(ToType).ToArray())),
             
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
@@ -67,7 +65,7 @@ public class InferenceBuilder
 
             SyntaxExpression.Application application => BuildApplication(ref state, application),
             SyntaxExpression.Identifier identifier => BuildIdentifier(ref state, identifier),
-            SyntaxExpression.Function function => throw new NotImplementedException(),
+            SyntaxExpression.Function function => BuildFunction(ref state, function),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };
@@ -91,38 +89,24 @@ public class InferenceBuilder
             expressions.Add(typed);
         }
 
-        var input = new Stack<StackyType>();
-        var output = new Stack<StackyType>();
-        
+        StackyType input = new StackyType.Void();
+        StackyType output = new StackyType.Void();
+
         foreach (var typed in expressions)
         {
-            if (typed.Type is StackyType.Function func)
+            if (typed.Type is StackyType.Function function)
             {
-                foreach (var funcInput in func.Input)
-                {
-                    if (output.Count > 0)
-                    {
-                        var inputType = output.Pop();
-                        state = state.Unify(funcInput, inputType);
-                    }
-                    else
-                    {
-                        input.Push(funcInput);
-                    }
-                }
-
-                foreach (var funcOutput in func.Output)
-                {
-                    output.Push(funcOutput);
-                }
+                input = Apply(ref state, function.Input, output, input);
+                output = Apply(ref state, output, function.Input, function.Output);
             }
             else
             {
-                output.Push(typed.Type);
+                output = StackyType.MakeComposite(output, typed.Type);
             }
         }
         
-        var type = new StackyType.Function(input.ToList(), output.ToList());
+        var type = new StackyType.Function(input, output);
+
         return new TypedExpression.Application(application, type, expressions);
     }
     
@@ -140,11 +124,59 @@ public class InferenceBuilder
         {
             throw new Exception($"unknown identifier: {identifier}");
         }
-
-        var functionType = new StackyType.Function(
-            function.Input.Select(ToType).ToList(),
-            function.Output.Select(ToType).ToList());
         
+        var functionType = ToType(function);
         return new TypedExpression.Identifier(identifier, functionType);
+    }
+    
+    private static TypedExpression BuildFunction(ref InferenceState state, SyntaxExpression.Function function)
+    {
+        var expr = Build(ref state, function.Body);
+
+        StackyType type;
+        if (expr.Type is StackyType.Function func)
+        {
+            type = func;
+        }
+        else
+        {
+            type = new StackyType.Function(new StackyType.Void(), expr.Type);
+        }
+
+        // since this is a function value, rather than a direct invokable we need to wrap it
+        var funcType = new StackyType.Function(new StackyType.Void(), type);
+        
+        return new TypedExpression.Function(function, funcType);
+    }
+    
+    public static StackyType Apply(ref InferenceState state, StackyType baseType, StackyType remove, StackyType add)
+    {
+        return Add(ref state, Remove(ref state, baseType, remove), add);
+    }
+
+    private static StackyType Remove(ref InferenceState state, StackyType type, StackyType remove)
+    {
+        var types = StackyType.Iterator(type).ToList();
+        var removeTypes = StackyType.Iterator(remove).ToList();
+
+        while (types.Count > 0 && removeTypes.Count > 0)
+        {
+            state = state.Unify(types[^1], removeTypes[^1]);
+            
+            types.RemoveAt(types.Count - 1);
+            removeTypes.RemoveAt(removeTypes.Count - 1);
+        }
+        
+        return StackyType.MakeComposite(types.ToArray());
+    }
+
+    private static StackyType Add(ref InferenceState state, StackyType type, StackyType add)
+    {
+        var types = StackyType.Iterator(type).ToList();
+        var addTypes = StackyType.Iterator(add).ToList();
+        
+        types.AddRange(addTypes);
+        
+        return StackyType.MakeComposite(types.ToArray());
     }
 }

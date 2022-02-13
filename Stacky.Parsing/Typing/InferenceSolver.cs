@@ -59,10 +59,20 @@ public class InferenceSolver
         {
             return Replace(rightVar, constraint.Left);
         }
-        
-        throw new NotImplementedException("handle more complex cases (e.g. application types) & invalid cases (e.g. str == i64)");
-    }
 
+        if (constraint.Left is StackyType.Composite leftComp && constraint.Right is StackyType.Composite rightComp)
+        {
+            return SolveComposite(leftComp, rightComp);
+        }
+        
+        if (constraint.Left is StackyType.Function leftFunc && constraint.Right is StackyType.Function rightFunc)
+        {
+            return SolveFunction(leftFunc, rightFunc);
+        }
+        
+        throw new NotImplementedException("handle invalid cases (e.g. str == i64)");
+    }
+    
     private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Replace(StackyType.Variable variable, StackyType type)
     {
         if (variable.Sort is not null)
@@ -72,4 +82,31 @@ public class InferenceSolver
         
         return (new Dictionary<StackyType.Variable, StackyType> { { variable, type } }, Array.Empty<InferenceConstraint>());
     }
+    
+    private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveComposite(StackyType.Composite left, StackyType.Composite right)
+    {
+        var leftTypes = left.Types;
+        var rightTypes = right.Types;
+
+        if (leftTypes.Count != rightTypes.Count)
+        {
+            throw new NotSupportedException("this could be possible if a variable in the composite is a composite itself");
+        }
+
+        var constraints = leftTypes.Zip(rightTypes).Select(x => new InferenceConstraint(x.First, x.Second)).ToList();
+        
+        return (new Dictionary<StackyType.Variable, StackyType>(), constraints);
+    }
+    
+    private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveFunction(StackyType.Function left, StackyType.Function right)
+    {
+        var constraints = new[]
+        {
+            new InferenceConstraint(left.Input, right.Input),
+            new InferenceConstraint(left.Output, right.Output),
+        };
+        
+        return (new Dictionary<StackyType.Variable, StackyType>(), constraints);
+    }
+
 }

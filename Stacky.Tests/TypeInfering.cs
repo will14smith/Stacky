@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using FluentAssertions;
 using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
@@ -42,11 +41,11 @@ public class TypeInfering : SyntaxBase
 
         var function = typed.Functions.Single();
         var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Function(Array.Empty<StackyType>(), new []
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new StackyType.Void(), new StackyType.Composite(new []
         {
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64)
-        }));
+        })));
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public class TypeInfering : SyntaxBase
 
         var function = typed.Functions.Single();
         var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Function(Array.Empty<StackyType>(), Array.Empty<StackyType>()));
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new StackyType.Void(), new StackyType.Void()));
     }  
     
     [Fact]
@@ -70,10 +69,9 @@ public class TypeInfering : SyntaxBase
 
         var function = typed.Functions.Single();
         var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new []
-        {
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
-        }, Array.Empty<StackyType>()));
+            new StackyType.Void()));
     }
     
     [Fact]
@@ -85,14 +83,14 @@ public class TypeInfering : SyntaxBase
 
         var function = typed.Functions.Single();
         var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new StackyType[]
-        {
-            new StackyType.String(),
-            new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
-        }, new []
-        {
-            new StackyType.String(),
-        }));
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Composite(new StackyType[]
+            {
+                new StackyType.String(),
+                new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
+            }), 
+            new StackyType.String()
+        ));
     }
     
     [Fact]
@@ -107,14 +105,76 @@ public class TypeInfering : SyntaxBase
 
         var function = typed.Functions.First();
         var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new StackyType[]
-        {
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
-        }, new []
-        {
-            new StackyType.String(),
-        }));
+            new StackyType.String()
+        ));
     }
    
-    // TODO anonymous functions (:
+    
+    [Fact]
+    public void AnonymousFunction_WithInputs_ShouldInfer()
+    {
+        var program = ParseProgram(@"test i64 -> () { { 1 + print } invoke }");
+
+        var typed = TypeInferer.Infer(program);
+
+        var function = typed.Functions.First();
+        var expr = function.Body;
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
+            new StackyType.Void()));
+        
+        var anon = ((TypedExpression.Application)function.Body).Expressions[0];
+        anon.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
+            new StackyType.Void()));
+
+    }
+    
+    [Fact]
+    public void AnonymousFunction_WithOutputs_ShouldInfer()
+    {
+        var program = ParseProgram(@"test () -> i64 { { 2 } invoke }");
+
+        var typed = TypeInferer.Infer(program);
+
+        var function = typed.Functions.First();
+        var expr = function.Body;
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Void(), 
+            new StackyType.Integer(true, SyntaxType.IntegerSize.S64)));
+        
+        var anon = ((TypedExpression.Application)function.Body).Expressions[0];
+        anon.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Void(), 
+            new StackyType.Integer(true, SyntaxType.IntegerSize.S64)));
+    }  
+    
+    [Fact]
+    public void AnonymousFunction_WithInputsAndOutputs_ShouldInfer()
+    {
+        var program = ParseProgram(@"test i64 -> i64 str { { dup 1 + string } invoke }");
+
+        var typed = TypeInferer.Infer(program);
+
+        var function = typed.Functions.First();
+        var expr = function.Body;
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Integer(true, SyntaxType.IntegerSize.S64), 
+            new StackyType.Composite(new StackyType[]
+            {
+                new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
+                new StackyType.String(),
+            })));
+        
+        var anon = ((TypedExpression.Application)function.Body).Expressions[0];
+        anon.Type.Should().BeEquivalentTo(new StackyType.Function(
+            new StackyType.Integer(true, SyntaxType.IntegerSize.S64), 
+            new StackyType.Composite(new StackyType[]
+            {
+                new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
+                new StackyType.String(),
+            })));
+    }
 }

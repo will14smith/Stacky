@@ -66,12 +66,15 @@ public class InferenceSubstitutions
 
         if (type is StackyType.Function function)
         {
-            var input = function.Input.Select(x => Apply(substitutions, x)).ToList();
-            var output = function.Output.Select(x => Apply(substitutions, x)).ToList();
-
-            return new StackyType.Function(input, output);
+            return new StackyType.Function(Apply(substitutions, function.Input), Apply(substitutions, function.Output));
         }
 
+        if (type is StackyType.Composite composite)
+        {
+            var types = composite.Types.Select(t => Apply(substitutions, t)).ToArray();
+            return StackyType.MakeComposite(types);
+        }
+        
         return type;
     }
 }
