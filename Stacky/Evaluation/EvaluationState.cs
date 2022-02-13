@@ -21,6 +21,11 @@ public class EvaluationState
     {
         return _program.Functions.FirstOrDefault(x => x.Name.Value == name) ?? throw new Exception($"Function '{name}' was not declared");
     }
+    
+    public SyntaxStruct GetStruct(string name)
+    {
+        return _program.Structs.FirstOrDefault(x => x.Name.Value == name) ?? throw new Exception($"Struct '{name}' was not declared");
+    }
 
     public EvaluationState Push(EvaluationValue value)
     {

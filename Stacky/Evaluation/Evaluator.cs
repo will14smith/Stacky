@@ -42,6 +42,16 @@ public class Evaluator
 
     private static EvaluationState RunIdentifier(EvaluationState state, SyntaxExpression.Identifier identifier)
     {
+        if (identifier.Value.Length > 1)
+        {
+            switch (identifier.Value[0])
+            {
+                case '@': return RunInit(ref state, identifier);                
+                case '#': return RunGetter(ref state, identifier);                
+                case '~': return RunSetter(ref state, identifier);                
+            }
+        }
+
         if (EvaluationBuiltIn.Map.TryGetValue(identifier.Value, out var handler))
         {
             return handler(state);
@@ -50,5 +60,46 @@ public class Evaluator
         var function = state.GetFunction(identifier.Value);
         return RunFunction(state, function);
 
+    }
+
+    private static EvaluationState RunInit(ref EvaluationState state, SyntaxExpression.Identifier identifier)
+    {
+        var structName = identifier.Value[1..];
+        var structDefinition = state.GetStruct(structName); 
+        
+        return state.Push(new EvaluationValue.Struct(structDefinition));
+    }
+
+    private static EvaluationState RunGetter(ref EvaluationState state, SyntaxExpression.Identifier identifier)
+    {
+        var fieldName = identifier.Value[1..];
+
+        state = state.Pop(out var a);
+        
+        if (a is not EvaluationValue.Struct structValue)
+        {
+            throw new InvalidCastException($"Expected arg 0 to be Struct but got {a}");
+        }
+
+        var value = structValue.Get(fieldName);
+
+        return state.Push(value);
+    }
+
+    private static EvaluationState RunSetter(ref EvaluationState state, SyntaxExpression.Identifier identifier)
+    {
+        var fieldName = identifier.Value[1..];
+
+        state = state.Pop(out var value);
+        state = state.Pop(out var a);
+        
+        if (a is not EvaluationValue.Struct structValue)
+        {
+            throw new InvalidCastException($"Expected arg 0 to be Struct but got {a}");
+        }
+
+        structValue = structValue.Update(fieldName, value);
+
+        return state.Push(structValue);
     }
 }

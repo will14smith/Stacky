@@ -6,7 +6,7 @@ TODO List:
 - [X] Structs - Parsing definitions
 - [X] Structs - Parsing init/getter/setter
 - [X] Structs - Type inference
-- [ ] Structs - Evaluating init/getter/setter
+- [X] Structs - Evaluating init/getter/setter
 - [ ] Structs - Compiling init/getter/setter
 - [ ] Type inference - Errors should link to syntax 
 - [ ] IO - basic read/write for files/stdio
@@ -121,6 +121,6 @@ main () -> () {
 }
 
 sum IntPair -> IntPair i16 {
-    dup dup #a #b +
+    dup dup #a swap #b +
 }
 ```

@@ -9,6 +9,7 @@ public static class InferenceIntrinsics
         { "drop", Drop },
         { "dup", Duplicate },
         { "invoke", Invoke },
+        { "swap", Swap },
         
         { "true", Boolean },
         { "false", Boolean },
@@ -57,7 +58,17 @@ public static class InferenceIntrinsics
         
         return state;
     }
+    
+    private static InferenceState Swap(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(new StackySort.Any(), out var type1);
+        state = state.NewVariable(new StackySort.Any(), out var type2);
 
+        type = new StackyType.Function(StackyType.MakeComposite(type1, type2), StackyType.MakeComposite(type2, type1));
+        
+        return state;
+    }
+    
     private static InferenceState Boolean(InferenceState state, out StackyType type)
     {
         type = new StackyType.Boolean();

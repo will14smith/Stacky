@@ -17,7 +17,19 @@ using Stacky.Parsing.Typing;
 // var input = "main () -> () { true { 1 print } if }";
 // var input = "main () -> () { 1 false { 2 + } { 1 + } if-else print }";
 // var input = "main () -> () { 1 false { 2 + } { 1 + } if-else print 1 true { 2 + } { 1 + } if-else print }";
-var input = "main () -> () { 5 { dup 0 > } { dup print 1 - } while drop }";
+// var input = "main () -> () { 5 { dup 0 > } { dup print 1 - } while drop }";
+
+var input = @"
+struct IntPair { a i16 b i16 }
+
+main () -> () {
+    @IntPair 1 ~a 2 ~b sum print drop
+}
+
+sum IntPair -> IntPair i16 {
+    dup dup #a swap #b +
+}
+";
 
 var parser = new Parser("input.st", input);
 var program = parser.Parse();

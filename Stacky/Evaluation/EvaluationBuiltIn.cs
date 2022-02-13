@@ -8,6 +8,7 @@ public class EvaluationBuiltIn
     {
         { "drop", s => s.Pop(out _) },
         { "dup", Duplicate },
+        { "swap", Swap },
         
         { "+", IntBinary((a, b) => a + b) },
         { "-", IntBinary((a, b) => a - b) },
@@ -33,6 +34,15 @@ public class EvaluationBuiltIn
         return state.Push(value).Push(value);
     }
 
+    private static EvaluationState Swap(EvaluationState state)
+    {
+        state = state.Pop(out var b);
+        state = state.Pop(out var a);
+
+        return state.Push(b).Push(a);
+    }
+
+    
     public static BuiltIn IntBinary(Func<long, long, long> calculation)
     {
         return state =>
