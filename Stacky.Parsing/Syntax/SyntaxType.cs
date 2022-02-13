@@ -6,7 +6,8 @@ public abstract record SyntaxType(SyntaxPosition Position) : SyntaxElement(Posit
     public record Integer(SyntaxPosition Position, bool Signed, IntegerSize Size) : SyntaxType(Position);
     public record String(SyntaxPosition Position) : SyntaxType(Position);
     public record Function(SyntaxPosition Position, IReadOnlyList<SyntaxType> Input, IReadOnlyList<SyntaxType> Output) : SyntaxType(Position);
-    
+    public record Struct(SyntaxPosition Position, string Name) : SyntaxType(Position);
+
     public enum IntegerSize
     {
         S8,
@@ -14,4 +15,5 @@ public abstract record SyntaxType(SyntaxPosition Position) : SyntaxElement(Posit
         S32,
         S64,
     }
+
 }

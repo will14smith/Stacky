@@ -31,7 +31,7 @@ public partial class Parser
             "i64" => new SyntaxType.Integer(identifier.Position, true, SyntaxType.IntegerSize.S64), 
             "u64" => new SyntaxType.Integer(identifier.Position, false, SyntaxType.IntegerSize.S64),
 
-            _ => throw Error(state, identifier.Position, $"Expecting a type name but got '{identifier.Value}'")
+            _ => new SyntaxType.Struct(identifier.Position, identifier.Value),
         };
     }
 

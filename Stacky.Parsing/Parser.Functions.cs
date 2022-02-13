@@ -4,11 +4,10 @@ namespace Stacky.Parsing;
 
 public partial class Parser
 {
-    private static SyntaxFunction ParseFunction(ref State state)
+    private static SyntaxFunction ParseFunction(ref State state, SyntaxExpression.Identifier name)
     {
-        var start = state.Location;
+        var start = name.Position.Start;
 
-        var name = ParseIdentifier(ref state);
         var type = ParseTypeFunction(ref state);
         
         Consume(ref state, '{');

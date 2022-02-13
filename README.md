@@ -3,12 +3,17 @@
 A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
+- [X] Structs - Parsing definitions
+- [ ] Structs - Parsing init/getter/setter
+- [ ] Structs - Type inference
+- [ ] Structs - Evaluating init/getter/setter
+- [ ] Structs - Compiling init/getter/setter
 - [ ] Type inference - Errors should link to syntax 
-- [ ] Structs
 - [ ] IO - basic read/write for files/stdio
 - [ ] Implement GC
 - [ ] Stacky self interpreter
 - [ ] Optimising compiler - removing stack operations when not needed 
+- [ ] Handle other integer types (currently only `i64` works)
 
 ## Syntax
 
@@ -43,8 +48,8 @@ User defined structs can also be created
 
 ```
 struct IntPair {
-    i16 a
-    i16 b
+    a i16
+    b i16
 }
 ```
 

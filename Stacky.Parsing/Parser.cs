@@ -20,20 +20,29 @@ public partial class Parser
     {
         var start = state.Location;
         var functions = new List<SyntaxFunction>();
+        var structs = new List<SyntaxStruct>();
 
         while (!state.IsEof)
         {
-            var function = ParseFunction(ref state);
-            functions.Add(function);
+            var identifier = ParseIdentifier(ref state);
 
+            if (identifier.Value == "struct")
+            {
+                structs.Add(ParseStruct(ref state, identifier));
+            }
+            else
+            {
+                functions.Add(ParseFunction(ref state, identifier));
+            }
+            
             state = state.SkipWhiteSpace();
         }
         
         var position = state.PositionFromStart(start);
-        return new SyntaxProgram(position, functions);
+        return new SyntaxProgram(position, functions, structs);
     }
 
-    private static bool Peek(ref State state, Func<object, bool> predicate, bool skipWhiteSpace = true)
+    private static bool Peek(ref State state, Func<char, bool> predicate, bool skipWhiteSpace = true)
     {
         if (state.IsEof)
         {
