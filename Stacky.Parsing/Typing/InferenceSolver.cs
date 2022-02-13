@@ -13,6 +13,11 @@ public class InferenceSolver
 
             var (newSubstitutions, newConstraints) = Solve(constraint);
             
+            foreach (var (variable, previous) in substitutions)
+            {
+                substitutions[variable] = InferenceSubstitutions.Apply(newSubstitutions, previous);
+            }
+            
             foreach (var (variable, substitution) in newSubstitutions)
             {
                 substitutions[variable] = substitution;
