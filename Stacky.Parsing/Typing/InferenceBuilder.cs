@@ -146,7 +146,7 @@ public class InferenceBuilder
         // since this is a function value, rather than a direct invokable we need to wrap it
         var funcType = new StackyType.Function(new StackyType.Void(), type);
         
-        return new TypedExpression.Function(function, funcType);
+        return new TypedExpression.Function(function, funcType, expr);
     }
     
     public static StackyType Apply(ref InferenceState state, StackyType baseType, StackyType remove, StackyType add)

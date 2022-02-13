@@ -3,7 +3,8 @@
 A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
-- [ ] Type inference
+- [ ] Type inference - Use during compilation
+- [ ] Type inference - Errors should link to syntax 
 - [ ] Structs
 - [ ] IO - basic read/write for files/stdio
 - [ ] Implement GC
@@ -73,7 +74,7 @@ e.g a function that tests if the top of the stack is positive with the type `i64
 
 ```
 if X bool (X -> X) -> X
-if-else X bool (X -> X T) (X -> X T) -> X T
+if-else X bool (X -> T) (X -> T) -> T
 ```
 where `X` and `T` are any type or `()`
 

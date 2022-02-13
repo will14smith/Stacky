@@ -31,3 +31,13 @@ public class InvalidSortTypeInferenceException : TypeInferenceException
         Type = type;
     }
 }
+
+public class AmbiguousTypeInferenceException : TypeInferenceException
+{
+    public StackyType Type { get; }
+
+    public AmbiguousTypeInferenceException(StackyType type) : base($"Type '{type}' was too ambiguous and could not be resolved to a concrete type")
+    {
+        Type = type;
+    }
+}

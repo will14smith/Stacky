@@ -1,22 +1,22 @@
-﻿namespace Stacky.Parsing.Typing;
+﻿using Stacky.Parsing.Syntax;
+
+namespace Stacky.Parsing.Typing;
 
 public class InferenceSolver
 {
     public static InferenceSubstitutions Solve(InferenceState state)
     {
-        var substitutions = new Dictionary<StackyType.Variable, StackyType>();
+        var substitutions = new Dictionary<int, StackyType>();
         var constraints = new Stack<InferenceConstraint>(state.Constraints);
 
+        // resolve all constraints
         while (constraints.Count > 0)
         {
             var constraint = Apply(constraints.Pop(), substitutions);
 
             var (newSubstitutions, newConstraints) = Solve(constraint);
             
-            foreach (var (variable, previous) in substitutions)
-            {
-                substitutions[variable] = InferenceSubstitutions.Apply(newSubstitutions, previous);
-            }
+            UpdateSubstitutions(substitutions, newSubstitutions);
             
             foreach (var (variable, substitution) in newSubstitutions)
             {
@@ -28,11 +28,34 @@ public class InferenceSolver
                 constraints.Push(newConstraints[i]);
             }
         }
+
+        // ensure all variables got a resolved type
+        var variables = state.Variables;
+        foreach (var variable in variables)
+        {
+            var substitutedVariable = InferenceSubstitutions.Apply(substitutions, variable);
+
+            if (substitutedVariable is StackyType.Variable remainingVariable)
+            {
+                UpdateSubstitutions(substitutions, new Dictionary<int, StackyType>
+                {
+                    { variable.Id, FindTypeUsingSort(remainingVariable) }
+                });
+            }
+        }
         
         return new InferenceSubstitutions(substitutions);
     }
 
-    private static InferenceConstraint Apply(InferenceConstraint constraint, IReadOnlyDictionary<StackyType.Variable, StackyType> substitutions)
+    private static void UpdateSubstitutions(Dictionary<int, StackyType> substitutions, IReadOnlyDictionary<int, StackyType> newSubstitutions)
+    {
+        foreach (var (variable, previous) in substitutions)
+        {
+            substitutions[variable] = InferenceSubstitutions.Apply(newSubstitutions, previous);
+        }
+    }
+
+    private static InferenceConstraint Apply(InferenceConstraint constraint, IReadOnlyDictionary<int, StackyType> substitutions)
     {
         if (!substitutions.Any())
         {
@@ -44,11 +67,11 @@ public class InferenceSolver
             InferenceSubstitutions.Apply(substitutions, constraint.Right));
     }
 
-    private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Solve(InferenceConstraint constraint)
+    private static (IReadOnlyDictionary<int, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Solve(InferenceConstraint constraint)
     {
         if (constraint.Left == constraint.Right)
         {
-            return (new Dictionary<StackyType.Variable, StackyType>(), Array.Empty<InferenceConstraint>());
+            return (new Dictionary<int, StackyType>(), Array.Empty<InferenceConstraint>());
         }
 
         if (constraint.Left is StackyType.Variable leftVar)
@@ -73,13 +96,13 @@ public class InferenceSolver
         throw new InvalidCastTypeInferenceException(constraint.Left, constraint.Right);
     }
     
-    private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Replace(StackyType.Variable variable, StackyType type)
+    private static (IReadOnlyDictionary<int, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Replace(StackyType.Variable variable, StackyType type)
     {
         if (type is StackyType.Variable typeVariable)
         {
             var mergedSorts = new StackyType.Variable(typeVariable.Id, StackySort.MakeComposite(variable.Sort, typeVariable.Sort));
             
-            return (new Dictionary<StackyType.Variable, StackyType> { { variable, mergedSorts } }, Array.Empty<InferenceConstraint>());
+            return (new Dictionary<int, StackyType> { { variable.Id, mergedSorts } }, Array.Empty<InferenceConstraint>());
         }
 
         if (!variable.Sort.IsCompatible(type))
@@ -87,34 +110,10 @@ public class InferenceSolver
             throw new InvalidSortTypeInferenceException(variable.Sort, type);
         }
         
-        // switch (variable.Sort)
-        // {
-        //     case StackySort.Numeric:
-        //         if (type is not StackyType.Integer)
-        //         {
-        //             throw new InvalidSortTypeInferenceException(variable.Sort, type);
-        //         }
-        //         break;
-        //
-        //     case StackySort.Printable:
-        //         if (type is not (StackyType.Boolean or StackyType.Integer or StackyType.String))
-        //         {
-        //             throw new InvalidSortTypeInferenceException(variable.Sort, type);
-        //         }
-        //         break;
-        //         
-        //     case StackySort.Comparable:
-        //         throw new NotImplementedException();
-        //     
-        //     case null: break;
-        //
-        //     default: throw new ArgumentOutOfRangeException();
-        // }
-        
-        return (new Dictionary<StackyType.Variable, StackyType> { { variable, type } }, Array.Empty<InferenceConstraint>());
+        return (new Dictionary<int, StackyType> { { variable.Id, type } }, Array.Empty<InferenceConstraint>());
     }
     
-    private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveComposite(StackyType.Composite left, StackyType.Composite right)
+    private static (IReadOnlyDictionary<int, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveComposite(StackyType.Composite left, StackyType.Composite right)
     {
         var leftTypes = left.Types;
         var rightTypes = right.Types;
@@ -126,10 +125,10 @@ public class InferenceSolver
 
         var constraints = leftTypes.Zip(rightTypes).Select(x => new InferenceConstraint(x.First, x.Second)).ToList();
         
-        return (new Dictionary<StackyType.Variable, StackyType>(), constraints);
+        return (new Dictionary<int, StackyType>(), constraints);
     }
     
-    private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveFunction(StackyType.Function left, StackyType.Function right)
+    private static (IReadOnlyDictionary<int, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveFunction(StackyType.Function left, StackyType.Function right)
     {
         var constraints = new[]
         {
@@ -137,7 +136,18 @@ public class InferenceSolver
             new InferenceConstraint(left.Output, right.Output),
         };
         
-        return (new Dictionary<StackyType.Variable, StackyType>(), constraints);
+        return (new Dictionary<int, StackyType>(), constraints);
     }
+    
+    private static StackyType FindTypeUsingSort(StackyType.Variable variable)
+    {
+        var i64 = new StackyType.Integer(true, SyntaxType.IntegerSize.S64);
 
+        if (variable.Sort.IsCompatible(i64))
+        {
+            return i64;
+        }
+        
+        throw new AmbiguousTypeInferenceException(variable);
+    }
 }

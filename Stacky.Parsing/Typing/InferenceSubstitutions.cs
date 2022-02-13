@@ -1,12 +1,10 @@
-﻿using System.Linq;
-
-namespace Stacky.Parsing.Typing;
+﻿namespace Stacky.Parsing.Typing;
 
 public class InferenceSubstitutions
 {
-    private readonly IReadOnlyDictionary<StackyType.Variable, StackyType> _substitutions;
+    private readonly IReadOnlyDictionary<int, StackyType> _substitutions;
 
-    public InferenceSubstitutions(IReadOnlyDictionary<StackyType.Variable, StackyType> substitutions)
+    public InferenceSubstitutions(IReadOnlyDictionary<int, StackyType> substitutions)
     {
         _substitutions = substitutions;
     }
@@ -40,7 +38,7 @@ public class InferenceSubstitutions
             TypedExpression.Application application => ApplyApplication(application),
             TypedExpression.Identifier identifier => new TypedExpression.Identifier(identifier.Syntax, Apply(_substitutions, identifier.Type)),
 
-            TypedExpression.Function function => new TypedExpression.Function(function.Syntax, Apply(_substitutions, function.Type)),
+            TypedExpression.Function function => new TypedExpression.Function(function.Syntax, Apply(_substitutions, function.Type), Apply(function.Body)),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };
@@ -54,11 +52,11 @@ public class InferenceSubstitutions
         return new TypedExpression.Application(application.Syntax, type, expressions);
     }
 
-    internal static StackyType Apply(IReadOnlyDictionary<StackyType.Variable, StackyType> substitutions, StackyType type)
+    internal static StackyType Apply(IReadOnlyDictionary<int, StackyType> substitutions, StackyType type)
     {
         if (type is StackyType.Variable variable)
         {
-            if (substitutions.TryGetValue(variable, out var variableReplacement))
+            if (substitutions.TryGetValue(variable.Id, out var variableReplacement))
             {
                 return variableReplacement;
             }

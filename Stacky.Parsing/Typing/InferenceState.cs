@@ -9,6 +9,7 @@ public class InferenceState
     private readonly ImmutableList<InferenceConstraint> _constraints;
 
     public SyntaxProgram Program { get; }
+    public IReadOnlyList<StackyType.Variable> Variables => _variables.ToList();
     public IReadOnlyList<InferenceConstraint> Constraints => _constraints.ToList();
 
     public InferenceState(SyntaxProgram program) : this(program, ImmutableList<StackyType.Variable>.Empty, ImmutableList<InferenceConstraint>.Empty) { }

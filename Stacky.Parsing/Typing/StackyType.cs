@@ -41,19 +41,11 @@ public abstract record StackyType
     {
         return type switch
         {
-            Composite comp => comp.Types,
             Void => Array.Empty<StackyType>(),
+            Composite comp => comp.Types,
             _ => new[] { type }
         };
     }
-    
-    // public record Apply(StackyType Base, StackyType Remove, StackyType Add) : StackyType
-    // {
-    //     public override string ToString()
-    //     {
-    //         return $"({Base} - {Remove}) + {Add}";
-    //     }
-    // }
 }
 
 public abstract record StackySort
@@ -83,8 +75,16 @@ public abstract record StackySort
 
     public static StackySort MakeComposite(params StackySort[] sorts)
     {
-        // TODO handle de-duplication
-        return new Composite(sorts);
+        var flat = sorts.SelectMany(x => x is Composite comp ? comp.Sorts : new[] { x }).Where(x => x is not Any).ToList();
+
+        var distinct = flat.Distinct().ToList();
+
+        return distinct.Count switch
+        {
+            0 => new Any(),
+            1 => distinct[0],
+            _ => new Composite(distinct)
+        };
     }
 
     public abstract bool IsCompatible(StackyType type);

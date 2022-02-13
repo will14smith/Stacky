@@ -10,6 +10,12 @@ public static class InferenceIntrinsics
         { "dup", Duplicate },
         { "invoke", Invoke },
         
+        { "true", Boolean },
+        { "false", Boolean },
+        { "if", If },
+        { "if-else", IfElse },
+        { "while", While },
+        
         { "+", MathOp },
         { "-", MathOp },
         { "*", MathOp },
@@ -49,6 +55,57 @@ public static class InferenceIntrinsics
         
         type = new StackyType.Function(StackyType.MakeComposite(input, fnType), output);
         
+        return state;
+    }
+
+    private static InferenceState Boolean(InferenceState state, out StackyType type)
+    {
+        type = new StackyType.Boolean();
+        return state;
+    }    
+    
+    private static InferenceState If(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(new StackySort.Any(), out var input);
+
+        var condition = new StackyType.Boolean();
+        var trueFunc = new StackyType.Function(input, input);
+        
+        type = new StackyType.Function(
+            StackyType.MakeComposite(input, condition, trueFunc),
+            input
+        );
+        return state;
+    }
+
+    private static InferenceState IfElse(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(new StackySort.Any(), out var input);
+        state = state.NewVariable(new StackySort.Any(), out var output);
+        
+        var condition = new StackyType.Boolean();
+        var trueFunc = new StackyType.Function(input, output);
+        var falseFunc = new StackyType.Function(input, output);
+
+        type = new StackyType.Function(
+            StackyType.MakeComposite(input, condition, trueFunc, falseFunc),
+            output
+        );
+        return state;
+    }
+
+    private static InferenceState While(InferenceState state, out StackyType type)
+    {
+        state = state.NewVariable(new StackySort.Any(), out var input);
+        
+        var condition = new StackyType.Boolean();
+        var conditionFunc = new StackyType.Function(input, StackyType.MakeComposite(input, condition));
+        var loopFunc = new StackyType.Function(input, input);
+
+        type = new StackyType.Function(
+            StackyType.MakeComposite(input, conditionFunc, loopFunc),
+            input
+        );
         return state;
     }
 

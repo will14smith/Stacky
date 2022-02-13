@@ -70,6 +70,20 @@ public class TypeInfering : SyntaxBase
     }
     
     [Fact]
+    public void NumberLiteralWithNoHints_ShouldPickDefaultType()
+    {
+        var program = ParseProgram("test () -> () { 1 print }");
+
+        var typed = TypeInferer.Infer(program);
+
+        var function = typed.Functions.Single();
+        
+        var literal = ((TypedExpression.Application)function.Body).Expressions[0];
+        literal.Type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
+    }
+
+    
+    [Fact]
     public void Application_WithAllArgsProvided_ShouldBeEmpty()
     {
         var program = ParseProgram("test () -> () { \"a\" print }");
