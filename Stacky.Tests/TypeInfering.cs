@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using FluentAssertions;
 using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
@@ -47,7 +48,27 @@ public class TypeInfering : SyntaxBase
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64)
         })));
     }
+    
+    [Fact]
+    public void StringReturnedFromNumber_ShouldError()
+    {
+        var program = ParseProgram("test () -> i64 { \"a\" }");
 
+        var func = () => TypeInferer.Infer(program);
+
+        func.Should().Throw<TypeInferenceException>();
+    }
+
+    [Fact]
+    public void StringPassedToAddition_ShouldError()
+    {
+        var program = ParseProgram("test () -> i64 { \"a\" 1 + }");
+
+        var func = () => TypeInferer.Infer(program);
+
+        func.Should().Throw<TypeInferenceException>();
+    }
+    
     [Fact]
     public void Application_WithAllArgsProvided_ShouldBeEmpty()
     {
@@ -176,5 +197,15 @@ public class TypeInfering : SyntaxBase
                 new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
                 new StackyType.String(),
             })));
+    }
+    
+    [Fact]
+    public void AnonymousFunctionPassedToString_ShouldError()
+    {
+        var program = ParseProgram("test () -> str { { 1 } string }");
+
+        var func = () => TypeInferer.Infer(program);
+
+        func.Should().Throw<TypeInferenceException>();
     }
 }

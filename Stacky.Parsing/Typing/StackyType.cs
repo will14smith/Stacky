@@ -5,11 +5,11 @@ namespace Stacky.Parsing.Typing;
 
 public abstract record StackyType
 {
-    public record Variable(int Id, StackySort? Sort) : StackyType
+    public record Variable(int Id, StackySort Sort) : StackyType
     {
         public override string ToString()
         {
-            return Sort == null ? $"[Id={Id}]" : $"[Id={Id}, Sort={Sort}]";
+            return Sort is StackySort.Any ? $"[Id={Id}]" : $"[Id={Id}, Sort={Sort}]";
         }
     }
     
@@ -58,7 +58,34 @@ public abstract record StackyType
 
 public abstract record StackySort
 {
-    public record Comparable : StackySort;
-    public record Numeric : StackySort;
-    public record Printable : StackySort;
+    public record Any : StackySort
+    {
+        public override bool IsCompatible(StackyType type) => true;
+    }
+    public record Composite(IReadOnlyCollection<StackySort> Sorts) : StackySort
+    {
+        public override bool IsCompatible(StackyType type) => Sorts.All(x => x.IsCompatible(type));
+    }
+
+    public record Comparable : StackySort
+    {
+        public override bool IsCompatible(StackyType type) => type is StackyType.Integer;
+    }
+    public record Numeric : StackySort
+    {
+        public override bool IsCompatible(StackyType type) => type is StackyType.Integer;
+    }
+
+    public record Printable : StackySort
+    {
+        public override bool IsCompatible(StackyType type) => type is StackyType.Boolean or StackyType.Integer or StackyType.String;
+    }
+
+    public static StackySort MakeComposite(params StackySort[] sorts)
+    {
+        // TODO handle de-duplication
+        return new Composite(sorts);
+    }
+
+    public abstract bool IsCompatible(StackyType type);
 }

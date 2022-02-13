@@ -24,7 +24,7 @@ public static class InferenceIntrinsics
 
     private static InferenceState Drop(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(null, out var input);
+        state = state.NewVariable(new StackySort.Any(), out var input);
 
         type = new StackyType.Function(input, new StackyType.Void());
         
@@ -33,7 +33,7 @@ public static class InferenceIntrinsics
 
     private static InferenceState Duplicate(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(null, out var input);
+        state = state.NewVariable(new StackySort.Any(), out var input);
 
         type = new StackyType.Function(input, StackyType.MakeComposite(input, input));
         
@@ -42,8 +42,8 @@ public static class InferenceIntrinsics
     
     private static InferenceState Invoke(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(null, out var input);
-        state = state.NewVariable(null, out var output);
+        state = state.NewVariable(new StackySort.Any(), out var input);
+        state = state.NewVariable(new StackySort.Any(), out var output);
 
         var fnType = new StackyType.Function(input, output);
         

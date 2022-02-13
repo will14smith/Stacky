@@ -19,7 +19,7 @@ public class InferenceState
         _constraints = constraints;
     }
 
-    public InferenceState NewVariable(StackySort? sort, out StackyType type)
+    public InferenceState NewVariable(StackySort sort, out StackyType type)
     {
         var variable = new StackyType.Variable(_variables.Count, sort);
         type = variable;

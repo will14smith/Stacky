@@ -69,16 +69,47 @@ public class InferenceSolver
         {
             return SolveFunction(leftFunc, rightFunc);
         }
-        
-        throw new NotImplementedException("handle invalid cases (e.g. str == i64)");
+
+        throw new InvalidCastTypeInferenceException(constraint.Left, constraint.Right);
     }
     
     private static (IReadOnlyDictionary<StackyType.Variable, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Replace(StackyType.Variable variable, StackyType type)
     {
-        if (variable.Sort is not null)
+        if (type is StackyType.Variable typeVariable)
         {
-            // TODO check compatible
+            var mergedSorts = new StackyType.Variable(typeVariable.Id, StackySort.MakeComposite(variable.Sort, typeVariable.Sort));
+            
+            return (new Dictionary<StackyType.Variable, StackyType> { { variable, mergedSorts } }, Array.Empty<InferenceConstraint>());
         }
+
+        if (!variable.Sort.IsCompatible(type))
+        {
+            throw new InvalidSortTypeInferenceException(variable.Sort, type);
+        }
+        
+        // switch (variable.Sort)
+        // {
+        //     case StackySort.Numeric:
+        //         if (type is not StackyType.Integer)
+        //         {
+        //             throw new InvalidSortTypeInferenceException(variable.Sort, type);
+        //         }
+        //         break;
+        //
+        //     case StackySort.Printable:
+        //         if (type is not (StackyType.Boolean or StackyType.Integer or StackyType.String))
+        //         {
+        //             throw new InvalidSortTypeInferenceException(variable.Sort, type);
+        //         }
+        //         break;
+        //         
+        //     case StackySort.Comparable:
+        //         throw new NotImplementedException();
+        //     
+        //     case null: break;
+        //
+        //     default: throw new ArgumentOutOfRangeException();
+        // }
         
         return (new Dictionary<StackyType.Variable, StackyType> { { variable, type } }, Array.Empty<InferenceConstraint>());
     }
