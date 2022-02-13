@@ -1,11 +1,12 @@
 ﻿using Stacky.Compilation.LLVM;
 using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
 
 public class Compiler
 {
-    private readonly SyntaxProgram _syntaxProgram;
+    private readonly TypedProgram _program;
 
     private readonly CompilerEmitter _emitter;
     private readonly CompilerEnvironment _environment;
@@ -13,9 +14,9 @@ public class Compiler
     private readonly CompilerAllocator _allocator;
     private readonly CompilerIntrinsics _intrinsics;
 
-    public Compiler(SyntaxProgram syntaxProgram)
+    public Compiler(TypedProgram program)
     {
-        _syntaxProgram = syntaxProgram;
+        _program = program;
 
         _emitter = new CompilerEmitter();
         _environment = new CompilerEnvironment(_emitter);
@@ -26,14 +27,14 @@ public class Compiler
 
     public void Compile()
     {
-        foreach (var function in _syntaxProgram.Functions)
+        foreach (var function in _program.Functions)
         {
-            _environment.DefineFunction(function.Name.Value, _typeBuilder.Build(function));
+            _environment.DefineFunction(function.Name.Value, _typeBuilder.BuildFunction(function.Type));
         }
         
-        foreach (var function in _syntaxProgram.Functions)
+        foreach (var function in _program.Functions)
         {
-            var functionCompiler = new FunctionCompiler(function, _allocator, _environment, _emitter, _intrinsics);
+            var functionCompiler = new FunctionCompiler(function, _allocator, _environment, _emitter, _intrinsics, _typeBuilder);
             functionCompiler.Compile();
         }
 

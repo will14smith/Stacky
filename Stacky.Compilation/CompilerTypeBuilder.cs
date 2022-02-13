@@ -1,29 +1,34 @@
 ﻿using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
 
 public class CompilerTypeBuilder
 {
-    public CompilerType.Function Build(SyntaxFunction function)
+    public CompilerType.Function BuildFunction(StackyType.Function function)
     {
-        var inputs = function.Input.Select(Build).ToList();
-        var outputs = function.Output.Select(Build).ToList();
+        var inputs = StackyType.Iterator(function.Input).Select(Build).ToList();
+        var outputs = StackyType.Iterator(function.Output).Select(Build).ToList();
         
         return new CompilerType.Function(inputs, outputs);
     }
     
-    public CompilerType Build(SyntaxType type)
+    public CompilerType Build(StackyType type)
     {
         return type switch
         {
-            SyntaxType.Integer(_, var signed, var size) => size switch
+            StackyType.Boolean => new CompilerType.Boolean(),
+            
+            StackyType.Integer(var signed, var size) => size switch
             {
                 SyntaxType.IntegerSize.S64 => signed ? new CompilerType.Long() : throw new NotImplementedException(),
                 
                 _ => throw new NotImplementedException()
             },
 
-            SyntaxType.String => new CompilerType.String(),
+            StackyType.String => new CompilerType.String(),
+            
+            StackyType.Function function => BuildFunction(function),
             
             _ => throw new ArgumentOutOfRangeException()
         };

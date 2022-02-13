@@ -1,6 +1,7 @@
 using LLVMSharp;
 using Stacky.Compilation.LLVM;
 using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
 
@@ -9,9 +10,9 @@ public class ExpressionCompiler
     private readonly CompilerEmitter _emitter;
     private readonly CompilerEnvironment _environment;
     private readonly CompilerIntrinsics _intrinsics;
-    private readonly IReadOnlyDictionary<SyntaxExpression.Function, CompilerValue> _anonymousFunctionMapping;
+    private readonly IReadOnlyDictionary<TypedExpression.Function, CompilerValue> _anonymousFunctionMapping;
 
-    public ExpressionCompiler(CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsics intrinsics, IReadOnlyDictionary<SyntaxExpression.Function, CompilerValue> anonymousFunctionMapping)
+    public ExpressionCompiler(CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsics intrinsics, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionMapping)
     {
         _emitter = emitter;
         _environment = environment;
@@ -19,30 +20,30 @@ public class ExpressionCompiler
         _anonymousFunctionMapping = anonymousFunctionMapping;
     }
 
-    public CompilerStack Compile(CompilerStack stack, SyntaxExpression expression)
+    public CompilerStack Compile(CompilerStack stack, TypedExpression expression)
     {
         return expression switch
         {
-            SyntaxExpression.LiteralInteger literalInteger => CompileLiteral(stack, literalInteger),
-            SyntaxExpression.LiteralString literalString => CompileLiteral(stack, literalString),
+            TypedExpression.LiteralInteger literalInteger => CompileLiteral(stack, literalInteger),
+            TypedExpression.LiteralString literalString => CompileLiteral(stack, literalString),
 
-            SyntaxExpression.Function function => CompileFunction(stack, function),
+            TypedExpression.Function function => CompileFunction(stack, function),
             
-            SyntaxExpression.Application application => CompileApplication(stack, application),
-            SyntaxExpression.Identifier identifier => CompileIdentifier(stack, identifier),
+            TypedExpression.Application application => CompileApplication(stack, application),
+            TypedExpression.Identifier identifier => CompileIdentifier(stack, identifier),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };
     }
     
-    private CompilerStack CompileLiteral(CompilerStack stack, SyntaxExpression.LiteralInteger literal) => stack.Push(_emitter.Literal(literal.Value));
-    private CompilerStack CompileLiteral(CompilerStack stack, SyntaxExpression.LiteralString literal) => stack.Push(_emitter.Literal(literal.Value));
+    private CompilerStack CompileLiteral(CompilerStack stack, TypedExpression.LiteralInteger literal) => stack.Push(_emitter.Literal(literal));
+    private CompilerStack CompileLiteral(CompilerStack stack, TypedExpression.LiteralString literal) => stack.Push(_emitter.Literal(literal.Value));
 
-    private CompilerStack CompileFunction(CompilerStack stack, SyntaxExpression.Function function) => stack.Push(_anonymousFunctionMapping[function]);
+    private CompilerStack CompileFunction(CompilerStack stack, TypedExpression.Function function) => stack.Push(_anonymousFunctionMapping[function]);
 
-    private CompilerStack CompileApplication(CompilerStack stack, SyntaxExpression.Application application) => application.Expressions.Aggregate(stack, Compile);
+    private CompilerStack CompileApplication(CompilerStack stack, TypedExpression.Application application) => application.Expressions.Aggregate(stack, Compile);
 
-    private CompilerStack CompileIdentifier(CompilerStack stack, SyntaxExpression.Identifier identifier)
+    private CompilerStack CompileIdentifier(CompilerStack stack, TypedExpression.Identifier identifier)
     {
         if (_intrinsics.TryCompile(identifier.Value, ref stack))
         {

@@ -27,5 +27,5 @@ var typedProgram = TypeInferer.Infer(program);
 var evaluator = new Evaluator(program);
 evaluator.Run();
 
-var compiler = new Compiler(program);
+var compiler = new Compiler(typedProgram);
 compiler.Compile();

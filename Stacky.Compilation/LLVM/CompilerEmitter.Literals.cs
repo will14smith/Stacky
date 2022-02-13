@@ -1,4 +1,6 @@
 ﻿using LLVMSharp;
+using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 using L = LLVMSharp.LLVM;
 
 namespace Stacky.Compilation.LLVM;
@@ -12,6 +14,21 @@ public partial class CompilerEmitter
         return new CompilerValue(value, new CompilerType.String());
     }
 
+    public CompilerValue Literal(TypedExpression.LiteralInteger literal)
+    {
+        if (literal.Type is not StackyType.Integer intType)
+        {
+            throw new InvalidCastException();
+        }
+
+        if (intType.Signed != true || intType.Size != SyntaxType.IntegerSize.S64)
+        {
+            throw new NotImplementedException("TODO support other int sizes");
+        }
+        
+        var value = L.ConstInt(LLVMTypeRef.Int64TypeInContext(_context), (ulong)literal.Value, true);
+        return new CompilerValue(value, new CompilerType.Long());
+    }
     public CompilerValue Literal(long literal)
     {
         var value = L.ConstInt(LLVMTypeRef.Int64TypeInContext(_context), (ulong)literal, true);
