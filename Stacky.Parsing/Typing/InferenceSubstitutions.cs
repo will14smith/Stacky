@@ -17,15 +17,28 @@ public class InferenceSubstitutions
         }
 
         var functions = built.Functions.Select(Apply).ToList();
+        var structs = built.Structs.Select(Apply).ToList();
         
-        return new TypedProgram(built.Syntax, functions);
+        return new TypedProgram(built.Syntax, functions, structs);
     }
-
+    
     private TypedFunction Apply(TypedFunction function)
     {
         var type = (StackyType.Function) Apply(_substitutions, function.Type);
         
         return new TypedFunction(function.Syntax, type, Apply(function.Body));
+    }
+
+    private TypedStruct Apply(TypedStruct definition)
+    {
+        var type = (StackyType.Struct) Apply(_substitutions, definition.Type);
+        var fields = definition.Fields.Select(Apply).ToList();
+        
+        return new TypedStruct(definition.Syntax, type, fields);
+    }
+    private TypedStructField Apply(TypedStructField field)
+    {
+        return new TypedStructField(field.Syntax, Apply(_substitutions, field.Type));
     }
 
     private TypedExpression Apply(TypedExpression expression)

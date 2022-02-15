@@ -28,12 +28,12 @@ public abstract record StackyType
     }
     public record Function(StackyType Input, StackyType Output) : StackyType;
 
-    public sealed record Struct(string Name, IReadOnlyList<(string Name, StackyType Type)> Fields) : StackyType
+    public sealed record Struct(string Name, IReadOnlyList<StructField> Fields) : StackyType
     {
         public bool Equals(Struct? other) => other != null && other.Name == Name;
         public override int GetHashCode() => Name.GetHashCode();
-
     }
+    public record StructField(string Name, StackyType Type);
 
     public static StackyType MakeComposite(params StackyType[] types) =>
         types.Length switch

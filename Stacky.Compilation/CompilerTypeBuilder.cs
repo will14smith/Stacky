@@ -1,4 +1,5 @@
-﻿using Stacky.Parsing.Syntax;
+﻿using Stacky.Compilation.LLVM;
+using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
@@ -9,10 +10,19 @@ public class CompilerTypeBuilder
     {
         var inputs = StackyType.Iterator(function.Input).Select(Build).ToList();
         var outputs = StackyType.Iterator(function.Output).Select(Build).ToList();
-        
+
         return new CompilerType.Function(inputs, outputs);
     }
-    
+
+    public CompilerType.Struct BuildStruct(StackyType.Struct type)
+    {
+        var fields = type.Fields.Select(Build).ToList();
+        
+        return new CompilerType.Struct(type.Name, fields);
+    }
+
+    private CompilerType.StructField Build(StackyType.StructField field) => new(field.Name, Build(field.Type));
+
     public CompilerType Build(StackyType type)
     {
         return type switch
@@ -29,6 +39,7 @@ public class CompilerTypeBuilder
             StackyType.String => new CompilerType.String(),
             
             StackyType.Function function => BuildFunction(function),
+            StackyType.Struct definition => BuildStruct(definition),
             
             _ => throw new ArgumentOutOfRangeException()
         };

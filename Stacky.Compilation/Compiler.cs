@@ -1,5 +1,4 @@
 ﻿using Stacky.Compilation.LLVM;
-using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
@@ -27,11 +26,16 @@ public class Compiler
 
     public void Compile()
     {
+        foreach (var definition in _program.Structs)
+        {
+            _environment.DefineStruct(definition.Name.Value, _typeBuilder.BuildStruct(definition.Type));
+        }
+        
         foreach (var function in _program.Functions)
         {
             _environment.DefineFunction(function.Name.Value, _typeBuilder.BuildFunction(function.Type));
         }
-        
+
         foreach (var function in _program.Functions)
         {
             var functionCompiler = new FunctionCompiler(function, _allocator, _environment, _emitter, _intrinsics, _typeBuilder);

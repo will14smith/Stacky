@@ -1,19 +1,19 @@
-using LLVMSharp;
 using Stacky.Compilation.LLVM;
-using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
 
-public class ExpressionCompiler
+public partial class ExpressionCompiler
 {
+    private readonly CompilerAllocator _allocator;
     private readonly CompilerEmitter _emitter;
     private readonly CompilerEnvironment _environment;
     private readonly CompilerIntrinsics _intrinsics;
     private readonly IReadOnlyDictionary<TypedExpression.Function, CompilerValue> _anonymousFunctionMapping;
 
-    public ExpressionCompiler(CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsics intrinsics, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionMapping)
+    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsics intrinsics, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionMapping)
     {
+        _allocator = allocator;
         _emitter = emitter;
         _environment = environment;
         _intrinsics = intrinsics;
@@ -45,6 +45,16 @@ public class ExpressionCompiler
 
     private CompilerStack CompileIdentifier(CompilerStack stack, TypedExpression.Identifier identifier)
     {
+        if (identifier.Value.Length > 1)
+        {
+            switch (identifier.Value[0])
+            {
+                case '@': return CompileInit(stack, identifier);                
+                case '#': return CompileGetter(stack, identifier);                
+                case '~': return CompileSetter(stack, identifier);                
+            }
+        }
+
         if (_intrinsics.TryCompile(identifier.Value, ref stack))
         {
             return stack;

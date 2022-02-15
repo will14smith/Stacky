@@ -19,9 +19,10 @@ public class CompilerAllocator
         _gcRootRemove = new Lazy<CompilerValue>(() => _emitter.DefineNativeFunction("gc_root_remove", _emitter.NativeFunctions.GcRootRemove));
     }
 
-    public CompilerValue Allocate(CompilerType type)
+    public CompilerValue Allocate(CompilerStruct type)
     {
-        throw new NotImplementedException();
+        // TODO allocate type & header information
+        return AllocateRaw(type.Type, _emitter.StructSize(type));
     }
     public CompilerValue AllocateRaw(CompilerType type, long length) => AllocateRaw(type, _emitter.Literal(length));
     public CompilerValue AllocateRaw(CompilerType type, CompilerValue length) => _emitter.Call(_gcAllocateRaw.Value, type, length);
@@ -30,6 +31,7 @@ public class CompilerAllocator
     {
         if (IsApplicable(value))
         {
+            // TODO cast value pointer to char*
             _emitter.CallVoid(_gcRootAdd.Value, value);
         }
     }
@@ -38,6 +40,7 @@ public class CompilerAllocator
     {
         if (IsApplicable(value))
         {
+            // TODO cast value pointer to char*
             _emitter.CallVoid(_gcRootRemove.Value, value);
         }
     }
@@ -45,6 +48,6 @@ public class CompilerAllocator
     private static bool IsApplicable(CompilerValue value)
     {
         // TODO expand this???
-        return value.Type is CompilerType.String;
+        return value.Type is CompilerType.String or CompilerType.Struct;
     }
 }

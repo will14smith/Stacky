@@ -7,7 +7,6 @@ public class NativeFunctions
 {
     public NativeFunctions(LLVMContext context)
     {
-        
         var dataPointer = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
         var int32 = context.Handle.Int32Type;
         var int64 = context.Handle.Int64Type;

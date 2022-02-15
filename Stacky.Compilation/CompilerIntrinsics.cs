@@ -174,7 +174,7 @@ public class CompilerIntrinsics
 
     private CompilerStack PrintLong(CompilerStack stack)
     {
-        var format = _emitter.Literal("%lld");
+        var format = _emitter.Literal("%lld\n");
         stack = stack.Pop<CompilerType.Long>(out var value, out _);
 
         // TODO not a Long... 
@@ -185,7 +185,7 @@ public class CompilerIntrinsics
 
     private CompilerStack PrintString(CompilerStack stack)
     {
-        var format = _emitter.Literal("%s");
+        var format = _emitter.Literal("%s\n");
         stack = stack.Pop<CompilerType.String>(out var value, out var removeRoot);
 
         // TODO not a Long... 

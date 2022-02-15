@@ -14,6 +14,7 @@ TODO List:
 - [ ] Stacky self interpreter
 - [ ] Optimising compiler - removing stack operations when not needed 
 - [ ] Handle other integer types (currently only `i64` works)
+- [ ] Structs - Better type inference (using `HasField "a" t f` type class style stuff)
 
 ## Syntax
 

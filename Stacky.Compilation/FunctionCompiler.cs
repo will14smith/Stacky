@@ -44,7 +44,7 @@ public class FunctionCompiler
             stack = stack.PushType(input);
         }
 
-        var compiler = new ExpressionCompiler(_emitter, _environment, _intrinsics, anonymousFunctionsMapping);
+        var compiler = new ExpressionCompiler(_allocator, _emitter, _environment, _intrinsics, anonymousFunctionsMapping);
 
         var entry = _emitter.CreateBlock(definition, "entry");
         _emitter.BeginBlock(entry);

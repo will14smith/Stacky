@@ -18,15 +18,14 @@ using Stacky.Parsing.Typing;
 // var input = "main () -> () { 1 false { 2 + } { 1 + } if-else print }";
 // var input = "main () -> () { 1 false { 2 + } { 1 + } if-else print 1 true { 2 + } { 1 + } if-else print }";
 // var input = "main () -> () { 5 { dup 0 > } { dup print 1 - } while drop }";
-
 var input = @"
-struct IntPair { a i16 b i16 }
+struct IntPair { a i64 b i64 }
 
 main () -> () {
     @IntPair 1 ~a 2 ~b sum print drop
 }
 
-sum IntPair -> IntPair i16 {
+sum IntPair -> IntPair i64 {
     dup dup #a swap #b +
 }
 ";

@@ -8,14 +8,40 @@ public class InferenceBuilder
     {
         var state = new InferenceState(program);
 
+        var structs = new List<TypedStruct>();
+        foreach (var definition in program.Structs)
+        {
+            structs.Add(Build(ref state, definition));
+        }
+        
         var functions = new List<TypedFunction>();
         foreach (var function in program.Functions)
         {
             functions.Add(Build(ref state, function));
         }
         
-        var typed = new TypedProgram(program, functions);
+        var typed = new TypedProgram(program, functions, structs);
         return (typed, state);
+    }
+
+    private static TypedStruct Build(ref InferenceState state, SyntaxStruct definition)
+    {
+        var fields = new List<TypedStructField>();
+        foreach (var f in definition.Fields)
+        {
+            fields.Add(Build(ref state, f));
+        }
+
+        var typeFields = fields.Select(f => new StackyType.StructField(f.Name.Value, f.Type)).ToList();
+        var type = new StackyType.Struct(definition.Name.Value, typeFields);
+        
+        return new TypedStruct(definition, type, fields);
+    }
+
+    private static TypedStructField Build(ref InferenceState state, SyntaxStructField field)
+    {
+        var type = ToType(state, field.Type);
+        return new TypedStructField(field, type);
     }
 
     private static TypedFunction Build(ref InferenceState state, SyntaxFunction function)
@@ -42,7 +68,7 @@ public class InferenceBuilder
     
     private static StackyType ToType(InferenceState state, SyntaxStruct structDef)
     {
-        var fields = structDef.Fields.Select(x => (x.Name.Value, ToType(state, x.Type))).ToList();
+        var fields = structDef.Fields.Select(x => new StackyType.StructField(x.Name.Value, ToType(state, x.Type))).ToList();
         
         return new StackyType.Struct(structDef.Name.Value, fields);
     }
