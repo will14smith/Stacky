@@ -691,5 +691,12 @@ namespace LLVMSharp
             Handle.InsertWithName(I.Handle, Name);
             return I;
         }
+        
+        public CallInst CreateMemSet(Value Ptr, Value Val, Value Size, uint Align)
+        {
+            var handle = Handle.BuildMemSet(Ptr.Handle, Val.Handle, Size.Handle, Align);
+            
+            return Context.GetOrCreate<CallInst>(handle);
+        }
     }
 }

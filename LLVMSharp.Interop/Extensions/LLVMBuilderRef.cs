@@ -743,6 +743,11 @@ namespace LLVMSharp.Interop
 
         public void SetInstDebugLocation(LLVMValueRef Inst) => LLVM.SetInstDebugLocation(this, Inst);
 
+        public LLVMValueRef BuildMemSet(LLVMValueRef Ptr, LLVMValueRef Val, LLVMValueRef Len, uint Align)
+        {
+            return LLVM.BuildMemSet(this, Ptr, Val, Len, Align);
+        }
+
         public override string ToString() => $"{nameof(LLVMBuilderRef)}: {Handle:X}";
     }
 }
