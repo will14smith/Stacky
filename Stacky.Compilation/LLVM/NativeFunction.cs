@@ -1,4 +1,4 @@
-﻿using LLVMSharp;
+﻿using LLVMSharp.Interop;
 
 namespace Stacky.Compilation.LLVM;
 

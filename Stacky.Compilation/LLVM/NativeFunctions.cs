@@ -1,16 +1,18 @@
 using LLVMSharp;
+using LLVMSharp.Interop;
 
 namespace Stacky.Compilation.LLVM;
 
 public class NativeFunctions
 {
-    public NativeFunctions(LLVMContextRef context)
+    public NativeFunctions(LLVMContext context)
     {
-        var dataPointer = LLVMTypeRef.PointerType(LLVMTypeRef.Int8TypeInContext(context), 0);
-        var int32 = LLVMTypeRef.Int32TypeInContext(context);
-        var int64 = LLVMTypeRef.Int64TypeInContext(context);
-        var stringT = LLVMTypeRef.PointerType(LLVMTypeRef.Int8TypeInContext(context), 0);
-        var voidT = LLVMTypeRef.VoidTypeInContext(context);
+        
+        var dataPointer = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
+        var int32 = context.Handle.Int32Type;
+        var int64 = context.Handle.Int64Type;
+        var stringT = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
+        var voidT = context.Handle.VoidType;
         
         GcAllocateRaw = new NativeFunction(new[] { int64 }, dataPointer, false);
         GcRootAdd = new NativeFunction(new[] { dataPointer }, voidT, false);

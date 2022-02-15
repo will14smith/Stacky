@@ -1,12 +1,13 @@
 using LLVMSharp;
+using LLVMSharp.Interop;
 
 namespace Stacky.Compilation.LLVM;
 
 internal class LLVMTypeBuilder
 {
-    private readonly LLVMContextRef _context;
+    private readonly LLVMContext _context;
 
-    public LLVMTypeBuilder(LLVMContextRef context)
+    public LLVMTypeBuilder(LLVMContext context)
     {
         _context = context;
     }
@@ -16,10 +17,10 @@ internal class LLVMTypeBuilder
         return type switch
         {
             // functions get values from the value stack rather than through arguments/returns
-            CompilerType.Function => LLVMTypeRef.PointerType(LLVMTypeRef.FunctionType(LLVMTypeRef.VoidTypeInContext(_context), Array.Empty<LLVMTypeRef>(), false), 0),
-            CompilerType.Boolean => LLVMTypeRef.Int1Type(),
-            CompilerType.Long => LLVMTypeRef.Int64TypeInContext(_context),
-            CompilerType.String => LLVMTypeRef.PointerType(LLVMTypeRef.Int8TypeInContext(_context), 0),
+            CompilerType.Function => LLVMTypeRef.CreatePointer(LLVMTypeRef.CreateFunction(_context.Handle.VoidType, Array.Empty<LLVMTypeRef>(), false), 0),
+            CompilerType.Boolean => _context.Handle.Int1Type,
+            CompilerType.Long => _context.Handle.Int64Type,
+            CompilerType.String => LLVMTypeRef.CreatePointer(_context.Handle.Int8Type, 0),
             
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };

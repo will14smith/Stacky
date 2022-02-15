@@ -12,4 +12,8 @@
       <ProjectReference Include="..\Stacky.Parsing\Stacky.Parsing.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="libLLVM.runtime.win-x64" Version="13.0.0" />
+    </ItemGroup>
+
 </Project>

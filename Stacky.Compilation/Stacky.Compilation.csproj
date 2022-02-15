@@ -5,12 +5,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
+    
     <ItemGroup>
-      <PackageReference Include="LLVMSharp" Version="5.0.0" />
-    </ItemGroup>
-
-    <ItemGroup>
+      <ProjectReference Include="..\LLVMSharp\LLVMSharp.csproj" />
       <ProjectReference Include="..\Stacky.Parsing\Stacky.Parsing.csproj" />
     </ItemGroup>
 

@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
-using LLVMSharp;
-using L = LLVMSharp.LLVM;
+using LLVMSharp.Interop;
+using L = LLVMSharp.Interop.LLVM;
 
 namespace Stacky.Compilation.LLVM;
 
@@ -19,19 +19,18 @@ public partial class CompilerEmitter
 
     private void SetTarget()
     {
-        L.SetTarget(_module, _targetPlatform);
+        _module.Target = _targetPlatform;
     }
 
     private void RunTargetMachine(Action<LLVMTargetMachineRef> action)
     {
-        if (L.GetTargetFromTriple(_targetPlatform, out var targetRef, out var error))
+        if (!LLVMTargetRef.TryGetTargetFromTriple(_targetPlatform, out var targetRef, out var error))
         {
             throw new Exception($"Failed to get platform triple: {error}");
         }
-        
-        var machineRef = L.CreateTargetMachine(targetRef, _targetPlatform, "generic", "", LLVMCodeGenOptLevel.LLVMCodeGenLevelDefault, LLVMRelocMode.LLVMRelocPIC, LLVMCodeModel.LLVMCodeModelDefault);
+
+        var machineRef = targetRef.CreateTargetMachine(_targetPlatform, "generic", "", LLVMCodeGenOptLevel.LLVMCodeGenLevelDefault, LLVMRelocMode.LLVMRelocPIC, LLVMCodeModel.LLVMCodeModelDefault);
         action(machineRef);
-        L.DisposeTargetMachine(machineRef);
     }
     
     public void OutputAssembly(string name)
@@ -41,10 +40,7 @@ public partial class CompilerEmitter
         
         RunTargetMachine(machineRef =>
         {
-            if (L.TargetMachineEmitToFile(machineRef, _module, Marshal.StringToHGlobalAnsi(name), LLVMCodeGenFileType.LLVMAssemblyFile, out var error))
-            {
-                throw new Exception($"Failed to emit output: {error}");
-            }
+            machineRef.EmitToFile(_module, name, LLVMCodeGenFileType.LLVMAssemblyFile);
         });
     }
     
@@ -55,10 +51,7 @@ public partial class CompilerEmitter
         
         RunTargetMachine(machineRef =>
         {
-            if (L.TargetMachineEmitToFile(machineRef, _module, Marshal.StringToHGlobalAnsi(name), LLVMCodeGenFileType.LLVMObjectFile, out var error))
-            {
-                throw new Exception($"Failed to emit output: {error}");
-            }
+            machineRef.EmitToFile(_module, name, LLVMCodeGenFileType.LLVMObjectFile);
         });
     }
 }

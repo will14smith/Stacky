@@ -1,5 +1,5 @@
 ﻿using LLVMSharp;
-using L = LLVMSharp.LLVM;
+using LLVMSharp.Interop;
 
 namespace Stacky.Compilation.LLVM;
 
@@ -9,8 +9,7 @@ public partial class CompilerEmitter
     
     public CompilerLabel CreateBlock(CompilerValue functionRef, string name)
     {
-        var block = L.AppendBasicBlockInContext(_context, functionRef.Value, name);
-     
+        var block = BasicBlock.Create(_context, name, (Function) functionRef.Value);
         return new CompilerLabel(block);
     }    
     public CompilerLabel CreateBlockInCurrent(string name)
@@ -19,9 +18,9 @@ public partial class CompilerEmitter
         {
             throw new Exception("not in a function currently");
         }
-        
-        var functionRef = L.GetBasicBlockParent(_currentBlock.Value.Block);
-        var block = L.AppendBasicBlockInContext(_context, functionRef, name);
+
+        var function = _currentBlock.Value.Block.Handle.Parent.AsFunction();
+        var block = BasicBlock.Create(_context, name, function);
         
         return new CompilerLabel(block);
     }   
@@ -29,45 +28,43 @@ public partial class CompilerEmitter
     public void BeginBlock(CompilerLabel label)
     {
         _currentBlock = label;
-        L.PositionBuilderAtEnd(_builder, label.Block);
+        _builder.SetInsertPoint(label.Block);
     }
 
     public CompilerValue DefineFunction(string name, CompilerType.Function type)
     {
-        var functionType = LLVMTypeRef.FunctionType(LLVMTypeRef.VoidTypeInContext(_context), Array.Empty<LLVMTypeRef>(), false);
+        var functionType = LLVMTypeRef.CreateFunction(_context.Handle.VoidType, Array.Empty<LLVMTypeRef>());
+        var functionRef = _module.AddFunction(name, functionType);
+        functionRef.Linkage = LLVMLinkage.LLVMExternalLinkage;
 
-        var functionRef = L.AddFunction(_module, name, functionType);
-        L.SetLinkage(functionRef, LLVMLinkage.LLVMExternalLinkage);
-
-        return new CompilerValue(functionRef, type);
+        return new CompilerValue(functionRef.AsValue(), type);
     }
 
     public CompilerValue DefineNativeFunction(string name, NativeFunction type)
     {
-        var returnType = type.Output ?? LLVMTypeRef.VoidTypeInContext(_context);
+        var returnType = type.Output ?? _context.Handle.VoidType;
         var argTypes = type.Inputs.ToArray();
 
-        var functionType = LLVMTypeRef.FunctionType(returnType, argTypes, type.HasVarArgs);
+        var functionType = LLVMTypeRef.CreateFunction(returnType, argTypes, type.HasVarArgs);
+        var functionRef = _module.AddFunction(name, functionType);
+        functionRef.Linkage = LLVMLinkage.LLVMExternalLinkage;
 
-        var functionRef = L.AddFunction(_module, name, functionType);
-        L.SetLinkage(functionRef, LLVMLinkage.LLVMExternalLinkage);
-
-        return new CompilerValue(functionRef, type);
+        return new CompilerValue(functionRef.AsValue(), type);
     }
 
     public void VerifyFunction(CompilerValue functionRef)
     {
-        L.VerifyFunction(functionRef.Value, LLVMVerifierFailureAction.LLVMPrintMessageAction);
+        functionRef.Value.Handle.VerifyFunction(LLVMVerifierFailureAction.LLVMPrintMessageAction);
     }
     
     public CompilerValue Call(CompilerValue target, CompilerType returnType, params CompilerValue[] args)
     {
-        var llvmValue = L.BuildCall(_builder, target.Value, args.Select(x => x.Value).ToArray(), "result");
-
-        return new CompilerValue(llvmValue, returnType);
+        var value = _builder.CreateCall(target.Value, args.Select(x => x.Value).ToArray(), "result");
+        
+        return new CompilerValue(value, returnType);
     }
 
-    public void CallVoid(CompilerValue function, params CompilerValue[] args) => L.BuildCall(_builder, function.Value, args.Select(x => x.Value).ToArray(), "");
+    public void CallVoid(CompilerValue function, params CompilerValue[] args) => _builder.CreateCall(function.Value, args.Select(x => x.Value).ToArray());
 
-    public void RetVoid() => L.BuildRetVoid(_builder);
+    public void RetVoid() => _builder.CreateRetVoid();
 }

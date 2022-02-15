@@ -4,10 +4,10 @@ namespace Stacky.Compilation;
 
 public struct CompilerLabel
 {
-    internal CompilerLabel(LLVMBasicBlockRef block)
+    internal CompilerLabel(BasicBlock block)
     {
         Block = block;
     }
 
-    internal LLVMBasicBlockRef Block { get; }
+    internal BasicBlock Block { get; }
 }
