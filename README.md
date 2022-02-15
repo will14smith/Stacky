@@ -124,3 +124,7 @@ sum IntPair -> IntPair i16 {
     dup dup #a swap #b +
 }
 ```
+
+# Notes
+
+[LLVMSharp](https://github.com/dotnet/LLVMSharp/tree/5f58465023f4a4964daba060c9fd40bc79b8d1b4) is included to fix some bugs / usability issues
