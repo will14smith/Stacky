@@ -27,6 +27,12 @@ public class CompilerStack
     {
         return _stack.Peek();
     }
+
+    public CompilerValue Peek()
+    {
+        var type = _stack.Peek();
+        return _emitter.Peek(type);
+    }
     
     public CompilerStack PopType(out CompilerType type)
     {
@@ -39,8 +45,8 @@ public class CompilerStack
         _emitter.Push(value);
         
         return PushType(value.Type);
-    }   
-    
+    }
+
     public CompilerStack Pop(out CompilerValue value, out Action removeRoot)
     {
         var stack = PopType(out var type);

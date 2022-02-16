@@ -30,6 +30,7 @@ public class CompilerIntrinsics
         {
             { "drop", Drop },
             { "dup", Duplicate },
+            { "swap", Swap },
             
             { "+", Add },
             { "-", Sub },
@@ -77,6 +78,20 @@ public class CompilerIntrinsics
         return stack;
     }
     
+    private CompilerStack Swap(CompilerStack stack)
+    {
+        stack = stack.Pop(out var b, out var removeRootB);
+        stack = stack.Pop(out var a, out var removeRootA);
+
+        stack = stack.Push(b);
+        removeRootB();
+
+        stack = stack.Push(a);
+        removeRootA();
+
+        return stack;
+    }
+
     private CompilerStack Add(CompilerStack stack)
     {
         stack = stack.Pop<CompilerType.Long>(out var b, out _);

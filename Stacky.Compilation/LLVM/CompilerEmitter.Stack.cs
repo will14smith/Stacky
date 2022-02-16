@@ -35,16 +35,27 @@ public partial class CompilerEmitter
 
     public CompilerValue Pop(CompilerType type)
     {
+        var (value, newStack) = PeekInternal(type);
+        
+        _builder.CreateStore(newStack, _stackPointer);
+
+        return value;
+    }
+
+    public CompilerValue Peek(CompilerType type) => PeekInternal(type).Value;
+
+    private (CompilerValue Value, Value NewStackPointer) PeekInternal(CompilerType type)
+    {
         var llvmType = _types.ToLLVM(type);
         
         var stack = _builder.CreateLoad(_stackPointer, "sp");
-        
         var newStack = _builder.CreateGEP(stack, new[] { LLVMValueRef.CreateConstNeg(llvmType.SizeOf).AsValue() }, "sp");
-        _builder.CreateStore(newStack, _stackPointer);
 
         var stackTyped = _builder.CreatePointerCast(newStack, LLVMTypeRef.CreatePointer(llvmType, 0).AsType(), "spTyped");
         var llvmValue = _builder.CreateLoad(stackTyped, "value");
 
-        return new CompilerValue(llvmValue, type);
-    }
+        var value = new CompilerValue(llvmValue, type);
+
+        return (value, newStack);
+    } 
 }

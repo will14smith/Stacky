@@ -27,4 +27,26 @@ public partial class CompilerEmitter
 
         _stackPointer = CreateStack();
     }
+
+    public CompilerValue Load(CompilerValue source)
+    {
+        if (source.Type is not CompilerType.Pointer pointer)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var value = _builder.CreateLoad(source.Value, "value");
+        
+        return new CompilerValue(value, pointer.Type);
+    }
+    
+    public void Store(CompilerValue dest, CompilerValue value)
+    {
+        if (dest.Type is not CompilerType.Pointer)
+        {
+            throw new InvalidOperationException();
+        }
+        
+        _builder.CreateStore(value.Value, dest.Value);
+    }
 }

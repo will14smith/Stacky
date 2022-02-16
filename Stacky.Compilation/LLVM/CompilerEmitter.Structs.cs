@@ -29,4 +29,14 @@ public partial class CompilerEmitter
         // TODO is this a Long?
         return new CompilerValue(size.AsValue(), new CompilerType.Long());
     }
+
+    public CompilerValue FieldPointer(CompilerValue target, string fieldName)
+    {
+        var structType = (CompilerType.Struct) target.Type;
+        var (field, fieldIndex) = structType.Fields.Select((x, i) => (Field: x, Index: i)).First(x => x.Field.Name == fieldName);
+
+        var offset = _builder.CreateStructGEP(target.Value, (uint) fieldIndex, "field");
+        
+        return new CompilerValue(offset, new CompilerType.Pointer(field.Type));
+    }
 }

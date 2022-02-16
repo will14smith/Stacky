@@ -19,13 +19,26 @@ public partial class ExpressionCompiler
     {
         var fieldName = identifier.Value[1..];
 
-        throw new NotImplementedException();
+        stack = stack.Pop(out var target, out var removeRoot);
+        
+        var fieldPointer = _emitter.FieldPointer(target, fieldName);
+        stack = stack.Push(_emitter.Load(fieldPointer));
+        removeRoot();
+
+        return stack;
     }
 
     private CompilerStack CompileSetter(CompilerStack stack, TypedExpression.Identifier identifier)
     {
         var fieldName = identifier.Value[1..];
 
-        throw new NotImplementedException();
+        stack = stack.Pop(out var value, out var removeRoot);
+        var target = stack.Peek();
+        
+        var fieldPointer = _emitter.FieldPointer(target, fieldName);
+        _emitter.Store(fieldPointer, value);
+        removeRoot();
+
+        return stack;
     }
 }

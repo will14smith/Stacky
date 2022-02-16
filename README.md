@@ -3,18 +3,13 @@
 A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
-- [X] Structs - Parsing definitions
-- [X] Structs - Parsing init/getter/setter
-- [X] Structs - Type inference
-- [X] Structs - Evaluating init/getter/setter
-- [ ] Structs - Compiling init/getter/setter
-- [ ] Type inference - Errors should link to syntax 
 - [ ] IO - basic read/write for files/stdio
 - [ ] Implement GC
 - [ ] Stacky self interpreter
 - [ ] Optimising compiler - removing stack operations when not needed 
 - [ ] Handle other integer types (currently only `i64` works)
-- [ ] Structs - Better type inference (using `HasField "a" t f` type class style stuff)
+- [ ] Type inference - errors should link to syntax
+- [ ] Type inference - better structs using `HasField "a" t f` type class style stuff
 
 ## Syntax
 
