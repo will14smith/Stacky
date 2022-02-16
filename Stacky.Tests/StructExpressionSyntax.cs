@@ -17,7 +17,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         
@@ -35,7 +35,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var runType = () => TypeInferer.Infer(program);
+        var runType = () => Infer(program);
 
         runType.Should().Throw<TypeInferenceException>();
     }  
@@ -49,7 +49,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         
@@ -68,7 +68,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         
@@ -87,7 +87,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var runType = () => TypeInferer.Infer(program);
+        var runType = () => Infer(program);
 
         runType.Should().Throw<TypeInferenceException>();
     }    
@@ -101,7 +101,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var runType = () => TypeInferer.Infer(program);
+        var runType = () => Infer(program);
 
         runType.Should().Throw<TypeInferenceException>();
     }    
@@ -115,7 +115,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
         
         var function = typed.Functions.Single();
         
@@ -131,7 +131,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var runType = () => TypeInferer.Infer(program);
+        var runType = () => Infer(program);
 
         runType.Should().Throw<TypeInferenceException>();
     }  
@@ -145,7 +145,7 @@ public class StructExpressionSyntax : SyntaxBase
         ";
 
         var program = ParseProgram(code);
-        var runType = () => TypeInferer.Infer(program);
+        var runType = () => Infer(program);
 
         runType.Should().Throw<TypeInferenceException>();
     }    

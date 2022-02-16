@@ -12,10 +12,10 @@ public class FunctionCompiler
     private readonly CompilerAllocator _allocator;
     private readonly CompilerEnvironment _environment;
     private readonly CompilerEmitter _emitter;
-    private readonly CompilerIntrinsics _intrinsics;
+    private readonly CompilerIntrinsicRegistry _intrinsics;
     private readonly CompilerTypeBuilder _typeBuilder;
 
-    public FunctionCompiler(TypedFunction function, CompilerAllocator allocator, CompilerEnvironment environment, CompilerEmitter emitter, CompilerIntrinsics intrinsics, CompilerTypeBuilder typeBuilder)
+    public FunctionCompiler(TypedFunction function, CompilerAllocator allocator, CompilerEnvironment environment, CompilerEmitter emitter, CompilerIntrinsicRegistry intrinsics, CompilerTypeBuilder typeBuilder)
     {
         _function = function;
 

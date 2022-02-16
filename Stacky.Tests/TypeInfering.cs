@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using FluentAssertions;
+using Stacky.Intrinsics;
 using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 using Xunit;
@@ -14,19 +15,19 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> i64 { 1 }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         var expr = function.Body;
         expr.Type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
     }
-
+    
     [Fact]
     public void StringLiteral_ShouldBeNumeric()
     {
         var program = ParseProgram("test () -> str { \"a\" }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         var expr = function.Body;
@@ -38,7 +39,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> i64 i64 { 1 2 }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         var expr = function.Body;
@@ -54,7 +55,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> i64 { \"a\" }");
 
-        var func = () => TypeInferer.Infer(program);
+        var func = () => Infer(program);
 
         func.Should().Throw<TypeInferenceException>();
     }
@@ -64,7 +65,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> i64 { \"a\" 1 + }");
 
-        var func = () => TypeInferer.Infer(program);
+        var func = () => Infer(program);
 
         func.Should().Throw<TypeInferenceException>();
     }
@@ -74,7 +75,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> () { 1 print }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         
@@ -88,7 +89,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> () { \"a\" print }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         var expr = function.Body;
@@ -100,7 +101,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test i64 -> () { 1 + print }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         var expr = function.Body;
@@ -114,7 +115,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test str i64 -> str { 1 + string concat }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.Single();
         var expr = function.Body;
@@ -136,7 +137,7 @@ public class TypeInfering : SyntaxBase
             test2 () -> i64 i64 { 1 2 }
         ");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.First();
         var expr = function.Body;
@@ -152,7 +153,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram(@"test i64 -> () { { 1 + print } invoke }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.First();
         var expr = function.Body;
@@ -172,7 +173,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram(@"test () -> i64 { { 2 } invoke }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.First();
         var expr = function.Body;
@@ -191,7 +192,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram(@"test i64 -> i64 str { { dup 1 + string } invoke }");
 
-        var typed = TypeInferer.Infer(program);
+        var typed = Infer(program);
 
         var function = typed.Functions.First();
         var expr = function.Body;
@@ -218,7 +219,7 @@ public class TypeInfering : SyntaxBase
     {
         var program = ParseProgram("test () -> str { { 1 } string }");
 
-        var func = () => TypeInferer.Infer(program);
+        var func = () => Infer(program);
 
         func.Should().Throw<TypeInferenceException>();
     }

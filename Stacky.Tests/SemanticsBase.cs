@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Stacky.Evaluation;
+using Stacky.Intrinsics;
 using Stacky.Parsing;
 
 namespace Stacky.Tests;
@@ -23,6 +24,8 @@ public class SemanticsBase
         var parser = new Parser("test", code);
         var program = parser.Parse();
 
-        return new Evaluator(program).Run(initial).ToList();
+        var evaluator = new Evaluator(program);
+        All.Populate(evaluator.Intrinsics);
+        return evaluator.Run(initial).ToList();
     }
 }

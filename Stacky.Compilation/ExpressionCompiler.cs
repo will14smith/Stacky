@@ -8,10 +8,10 @@ public partial class ExpressionCompiler
     private readonly CompilerAllocator _allocator;
     private readonly CompilerEmitter _emitter;
     private readonly CompilerEnvironment _environment;
-    private readonly CompilerIntrinsics _intrinsics;
+    private readonly CompilerIntrinsicRegistry _intrinsics;
     private readonly IReadOnlyDictionary<TypedExpression.Function, CompilerValue> _anonymousFunctionMapping;
 
-    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsics intrinsics, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionMapping)
+    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsicRegistry intrinsics, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionMapping)
     {
         _allocator = allocator;
         _emitter = emitter;
@@ -64,7 +64,7 @@ public partial class ExpressionCompiler
         return CallFunction(_emitter, stack, function);
     }
 
-    internal static CompilerStack CallFunction(CompilerEmitter emitter, CompilerStack stack, CompilerValue function)
+    public static CompilerStack CallFunction(CompilerEmitter emitter, CompilerStack stack, CompilerValue function)
     {
         var functionType = (CompilerType.Function)function.Type;
 

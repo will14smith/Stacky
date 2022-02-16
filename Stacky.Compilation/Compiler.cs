@@ -11,7 +11,8 @@ public class Compiler
     private readonly CompilerEnvironment _environment;
     private readonly CompilerTypeBuilder _typeBuilder;
     private readonly CompilerAllocator _allocator;
-    private readonly CompilerIntrinsics _intrinsics;
+    
+    public CompilerIntrinsicRegistry Intrinsics { get; }
 
     public Compiler(TypedProgram program)
     {
@@ -21,7 +22,7 @@ public class Compiler
         _environment = new CompilerEnvironment(_emitter);
         _typeBuilder = new CompilerTypeBuilder();
         _allocator = new CompilerAllocator(_emitter);
-        _intrinsics = new CompilerIntrinsics(_allocator, _emitter);
+        Intrinsics = new CompilerIntrinsicRegistry(_allocator, _emitter);
     }
 
     public void Compile()
@@ -38,7 +39,7 @@ public class Compiler
 
         foreach (var function in _program.Functions)
         {
-            var functionCompiler = new FunctionCompiler(function, _allocator, _environment, _emitter, _intrinsics, _typeBuilder);
+            var functionCompiler = new FunctionCompiler(function, _allocator, _environment, _emitter, Intrinsics, _typeBuilder);
             functionCompiler.Compile();
         }
 

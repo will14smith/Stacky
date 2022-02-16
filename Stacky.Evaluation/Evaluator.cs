@@ -6,6 +6,8 @@ namespace Stacky.Evaluation;
 public class Evaluator
 {
     private readonly SyntaxProgram _program;
+    
+    public EvaluationIntrinsicRegistry Intrinsics { get; } = new();
 
     public Evaluator(SyntaxProgram program)
     {
@@ -23,9 +25,9 @@ public class Evaluator
         return state.Stack;
     }
     
-    private static EvaluationState RunFunction(EvaluationState state, SyntaxFunction function) => RunExpression(state, function.Body);
+    private EvaluationState RunFunction(EvaluationState state, SyntaxFunction function) => RunExpression(state, function.Body);
 
-    internal static EvaluationState RunExpression(EvaluationState state, SyntaxExpression expr) =>
+    public EvaluationState RunExpression(EvaluationState state, SyntaxExpression expr) =>
         expr switch
         {
             SyntaxExpression.LiteralInteger literal => state.Push(new EvaluationValue.Int64(literal.Value)),
@@ -38,9 +40,9 @@ public class Evaluator
             _ => throw new ArgumentOutOfRangeException(nameof(expr))
         };
     
-    private static EvaluationState RunApplication(EvaluationState state, SyntaxExpression.Application application) => application.Expressions.Aggregate(state, RunExpression);
+    private EvaluationState RunApplication(EvaluationState state, SyntaxExpression.Application application) => application.Expressions.Aggregate(state, RunExpression);
 
-    private static EvaluationState RunIdentifier(EvaluationState state, SyntaxExpression.Identifier identifier)
+    private EvaluationState RunIdentifier(EvaluationState state, SyntaxExpression.Identifier identifier)
     {
         if (identifier.Value.Length > 1)
         {
@@ -52,9 +54,9 @@ public class Evaluator
             }
         }
 
-        if (EvaluationBuiltIn.Map.TryGetValue(identifier.Value, out var handler))
+        if (Intrinsics.TryGetIntrinsic(identifier.Value, out var handler))
         {
-            return handler(state);
+            return handler!.Evaluate(this, state);
         }
         
         var function = state.GetFunction(identifier.Value);

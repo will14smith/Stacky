@@ -1,6 +1,8 @@
 ﻿using FluentAssertions;
+using Stacky.Intrinsics;
 using Stacky.Parsing;
 using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Tests;
 
@@ -31,4 +33,10 @@ public class SyntaxBase
         return parser.Parse();
     }
 
+    protected static TypedProgram Infer(SyntaxProgram program)
+    {
+        var inferer = new TypeInferer();
+        All.Populate(inferer.Intrinsics);
+        return inferer.Infer(program);
+    }
 }

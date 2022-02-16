@@ -4,7 +4,14 @@ namespace Stacky.Parsing.Typing;
 
 public class InferenceBuilder
 {
-    public static (TypedProgram, InferenceState) Build(SyntaxProgram program)
+    private readonly InferenceIntrinsicRegistry _intrinsicRegistry;
+
+    public InferenceBuilder(InferenceIntrinsicRegistry intrinsicRegistry)
+    {
+        _intrinsicRegistry = intrinsicRegistry;
+    }
+
+    public (TypedProgram, InferenceState) Build(SyntaxProgram program)
     {
         var state = new InferenceState(program);
 
@@ -44,7 +51,7 @@ public class InferenceBuilder
         return new TypedStructField(field, type);
     }
 
-    private static TypedFunction Build(ref InferenceState state, SyntaxFunction function)
+    private TypedFunction Build(ref InferenceState state, SyntaxFunction function)
     {
         var body = Build(ref state, function.Body);
         var type = body.Type as StackyType.Function ?? new StackyType.Function(new StackyType.Void(), body.Type);
@@ -92,7 +99,7 @@ public class InferenceBuilder
         };
     }
 
-    private static TypedExpression Build(ref InferenceState state, SyntaxExpression expression)
+    private TypedExpression Build(ref InferenceState state, SyntaxExpression expression)
     {
         return expression switch
         {
@@ -116,7 +123,7 @@ public class InferenceBuilder
     }
     private static TypedExpression BuildLiteral(ref InferenceState state, SyntaxExpression.LiteralString literal) => new TypedExpression.LiteralString(literal, new StackyType.String());
     
-    private static TypedExpression BuildApplication(ref InferenceState state, SyntaxExpression.Application application)
+    private TypedExpression BuildApplication(ref InferenceState state, SyntaxExpression.Application application)
     {
         var expressions = new List<TypedExpression>();
         foreach (var expression in application.Expressions)
@@ -146,7 +153,7 @@ public class InferenceBuilder
         return new TypedExpression.Application(application, type, expressions);
     }
     
-    private static TypedExpression BuildIdentifier(ref InferenceState state, SyntaxExpression.Identifier identifier)
+    private TypedExpression BuildIdentifier(ref InferenceState state, SyntaxExpression.Identifier identifier)
     {
         if (identifier.Value.Length > 1)
         {
@@ -158,9 +165,9 @@ public class InferenceBuilder
             }
         }
         
-        if (InferenceIntrinsics.TryInfer(identifier.Value, out var handler))
+        if (_intrinsicRegistry.TryGetIntrinsic(identifier.Value, out var intrinsic))
         {
-            state = handler!(state, out var type);
+            state = intrinsic!.Infer(state, out var type);
             
             return new TypedExpression.Identifier(identifier, type);
         }
@@ -219,7 +226,7 @@ public class InferenceBuilder
         return new TypedExpression.Identifier(identifier, type);
     }
 
-    private static TypedExpression BuildFunction(ref InferenceState state, SyntaxExpression.Function function)
+    private TypedExpression BuildFunction(ref InferenceState state, SyntaxExpression.Function function)
     {
         var expr = Build(ref state, function.Body);
 
