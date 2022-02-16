@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLVMSharp", "LLVMSharp\LLVM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LLVMSharp.Interop", "LLVMSharp.Interop\LLVMSharp.Interop.csproj", "{AEE6710E-1093-48B4-A613-FE0B1E4B9502}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stacky.Evaluation", "Stacky.Evaluation\Stacky.Evaluation.csproj", "{462075CC-4782-48C8-B9FE-947F6C3BD228}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,5 +49,9 @@ Global
 		{AEE6710E-1093-48B4-A613-FE0B1E4B9502}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEE6710E-1093-48B4-A613-FE0B1E4B9502}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AEE6710E-1093-48B4-A613-FE0B1E4B9502}.Release|Any CPU.Build.0 = Release|Any CPU
+		{462075CC-4782-48C8-B9FE-947F6C3BD228}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{462075CC-4782-48C8-B9FE-947F6C3BD228}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{462075CC-4782-48C8-B9FE-947F6C3BD228}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{462075CC-4782-48C8-B9FE-947F6C3BD228}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
