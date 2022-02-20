@@ -10,15 +10,16 @@ public class WhileIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(new StackySort.Any(), out var input);
+        state = state.NewStackVariable(out var stack1);
+        state = state.NewStackVariable(out var stack2);
         
         var condition = new StackyType.Boolean();
-        var conditionFunc = new StackyType.Function(input, StackyType.MakeComposite(input, condition));
-        var loopFunc = new StackyType.Function(input, input);
+        var conditionFunc = new StackyType.Function(stack1, StackyType.MakeComposite(stack2, condition));
+        var loopFunc = new StackyType.Function(stack2, stack1);
 
         type = new StackyType.Function(
-            StackyType.MakeComposite(input, conditionFunc, loopFunc),
-            input
+            StackyType.MakeComposite(stack1, conditionFunc, loopFunc),
+            stack1
         );
         return state;
     }

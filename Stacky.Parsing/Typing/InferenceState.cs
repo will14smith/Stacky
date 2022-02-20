@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using Stacky.Parsing.Syntax;
 
 namespace Stacky.Parsing.Typing;
@@ -20,6 +21,10 @@ public class InferenceState
         _constraints = constraints;
     }
 
+    [Pure]
+    public InferenceState NewStackVariable(out StackyType type) => NewVariable(new StackySort.Stack(), out type);
+
+    [Pure]
     public InferenceState NewVariable(StackySort sort, out StackyType type)
     {
         var variable = new StackyType.Variable(_variables.Count, sort);
@@ -27,15 +32,19 @@ public class InferenceState
         return WithVariables(_variables.Add(variable));
     }
     
+    [Pure]
     public InferenceState Unify(StackyType left, StackyType right)
     {
         var constraint = new InferenceConstraint(left, right);
         return WithConstraints(_constraints.Add(constraint));
     }
     
+    [Pure]
     private InferenceState WithVariables(ImmutableList<StackyType.Variable> variables) => new(Program, variables, _constraints);
+    [Pure]
     private InferenceState WithConstraints(ImmutableList<InferenceConstraint> constraints) => new(Program, _variables, constraints);
 
+    [Pure]
     public SyntaxStruct LookupStruct(string structName)
     {
         var structDef = Program.Structs.FirstOrDefault(x => x.Name.Value == structName);

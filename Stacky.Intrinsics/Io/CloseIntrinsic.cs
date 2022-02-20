@@ -10,7 +10,9 @@ public class CloseIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        type = new StackyType.Function(new FileInferenceType(), new StackyType.Void());
+        state = state.NewStackVariable(out var stack);
+
+        type = new StackyType.Function(StackyType.MakeComposite(stack, new FileInferenceType()), stack);
         return state;
     }
 

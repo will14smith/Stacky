@@ -10,10 +10,11 @@ public class OverIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Any(), out var a);
         state = state.NewVariable(new StackySort.Any(), out var b);
 
-        type = new StackyType.Function(StackyType.MakeComposite(a, b), StackyType.MakeComposite(a, b, a));
+        type = new StackyType.Function(StackyType.MakeComposite(stack, a, b), StackyType.MakeComposite(stack, a, b, a));
          
         return state;
     }

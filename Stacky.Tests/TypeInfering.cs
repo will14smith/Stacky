@@ -1,7 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using FluentAssertions;
-using Stacky.Intrinsics;
 using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 using Xunit;
@@ -18,20 +16,20 @@ public class TypeInfering : SyntaxBase
         var typed = Infer(program);
 
         var function = typed.Functions.Single();
-        var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
+        var type = GetOutputHead(function.Body.Type);
+        type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
     }
     
     [Fact]
-    public void StringLiteral_ShouldBeNumeric()
+    public void StringLiteral_ShouldBeString()
     {
         var program = ParseProgram("test () -> str { \"a\" }");
 
         var typed = Infer(program);
 
         var function = typed.Functions.Single();
-        var expr = function.Body;
-        expr.Type.Should().BeOfType<StackyType.String>();
+        var type = GetOutputHead(function.Body.Type);
+        type.Should().BeOfType<StackyType.String>();
     }
     
     [Fact]
@@ -43,11 +41,10 @@ public class TypeInfering : SyntaxBase
 
         var function = typed.Functions.Single();
         var expr = function.Body;
-        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new StackyType.Void(), new StackyType.Composite(new []
-        {
+        expr.Type.Should().BeEquivalentTo(new StackyType.Function(new StackyType.Void(), new StackyType.Composite(
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64)
-        })));
+        )));
     }
     
     [Fact]
@@ -80,7 +77,8 @@ public class TypeInfering : SyntaxBase
         var function = typed.Functions.Single();
         
         var literal = ((TypedExpression.Application)function.Body).Expressions[0];
-        literal.Type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
+        var type = GetOutputHead(literal.Type);
+        type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
     }
 
     
@@ -120,11 +118,10 @@ public class TypeInfering : SyntaxBase
         var function = typed.Functions.Single();
         var expr = function.Body;
         expr.Type.Should().BeEquivalentTo(new StackyType.Function(
-            new StackyType.Composite(new StackyType[]
-            {
+            new StackyType.Composite(
                 new StackyType.String(),
-                new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
-            }), 
+                new StackyType.Integer(true, SyntaxType.IntegerSize.S64)
+            ), 
             new StackyType.String()
         ));
     }
@@ -198,20 +195,18 @@ public class TypeInfering : SyntaxBase
         var expr = function.Body;
         expr.Type.Should().BeEquivalentTo(new StackyType.Function(
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64), 
-            new StackyType.Composite(new StackyType[]
-            {
+            new StackyType.Composite(
                 new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
-                new StackyType.String(),
-            })));
+                new StackyType.String()
+            )));
         
         var anon = ((TypedExpression.Application)function.Body).Expressions[0];
         anon.Type.Should().BeEquivalentTo(new StackyType.Function(
             new StackyType.Integer(true, SyntaxType.IntegerSize.S64), 
-            new StackyType.Composite(new StackyType[]
-            {
+            new StackyType.Composite(
                 new StackyType.Integer(true, SyntaxType.IntegerSize.S64),
-                new StackyType.String(),
-            })));
+                new StackyType.String()
+            )));
     }
     
     [Fact]

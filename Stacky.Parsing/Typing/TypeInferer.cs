@@ -6,13 +6,16 @@ public class TypeInferer
 {
     public InferenceIntrinsicRegistry Intrinsics { get; } = new();
 
-    public TypedProgram Infer(SyntaxProgram program)
+    public (TypedProgram Program, InferenceState State) Annotate(SyntaxProgram program)
     {
         var builder = new InferenceBuilder(Intrinsics);
-        var (built, state) = builder.Build(program);
-        
+        return builder.Build(program);
+    }  
+    
+    public TypedProgram Infer(SyntaxProgram program)
+    {
+        var (built, state) = Annotate(program);
         var substitutions = InferenceSolver.Solve(state);
-        
         return substitutions.Apply(built);
     }
 }

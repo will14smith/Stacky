@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections;
+using FluentAssertions;
 using Stacky.Intrinsics;
 using Stacky.Parsing;
 using Stacky.Parsing.Syntax;
@@ -38,5 +39,18 @@ public class SyntaxBase
         var inferer = new TypeInferer();
         All.Populate(inferer.Intrinsics);
         return inferer.Infer(program);
+    }
+
+    protected static StackyType GetOutputHead(StackyType type)
+    {
+        var func = (StackyType.Function)type;
+        var output = func.Output;
+
+        if (output is StackyType.Composite composite)
+        {
+            return composite.Right;
+        }
+
+        return output;
     }
 }

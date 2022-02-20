@@ -10,7 +10,11 @@ public class NotIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        type = new StackyType.Function(new StackyType.Boolean(), new StackyType.Boolean());
+        state = state.NewStackVariable(out var stack);
+        
+        type = new StackyType.Function(
+            StackyType.MakeComposite(stack, new StackyType.Boolean()),
+            StackyType.MakeComposite(stack, new StackyType.Boolean()));
         return state;
     }
 

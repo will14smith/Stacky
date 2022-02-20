@@ -54,9 +54,9 @@ public class InferenceBuilder
     private TypedFunction Build(ref InferenceState state, SyntaxFunction function)
     {
         var body = Build(ref state, function.Body);
-        var type = body.Type as StackyType.Function ?? new StackyType.Function(new StackyType.Void(), body.Type);
+        var type = (StackyType.Function)body.Type;
 
-        var funcType = ToType(state, function);
+        var funcType = ToType(ref state, function);
 
         state = state
             .Unify(funcType.Input, type.Input)
@@ -65,10 +65,13 @@ public class InferenceBuilder
         return new TypedFunction(function, type, body);
     }
 
-    private static StackyType.Function ToType(InferenceState state, SyntaxFunction function)
+    private static StackyType.Function ToType(ref InferenceState state, SyntaxFunction function)
     {
-        var input = StackyType.MakeComposite(function.Input.Select(t => ToType(state, t)).ToArray());
-        var output = StackyType.MakeComposite(function.Output.Select(t => ToType(state, t)).ToArray());
+        state = state.NewStackVariable(out var inputStack);
+
+        var localState = state;
+        var input = StackyType.MakeComposite(function.Input.Select(t => ToType(localState, t)).Prepend(inputStack).ToArray());
+        var output = StackyType.MakeComposite(function.Output.Select(t => ToType(localState, t)).Prepend(inputStack).ToArray());
         
         return new StackyType.Function(input, output);
     }
@@ -116,13 +119,22 @@ public class InferenceBuilder
     
     private static TypedExpression BuildLiteral(ref InferenceState state, SyntaxExpression.LiteralInteger literal)
     {
+        state = state.NewStackVariable(out var stack);
         // TODO sort could be more specific depending on value
-        state = state.NewVariable(new StackySort.Numeric(), out var type);
+        state = state.NewVariable(new StackySort.Numeric(), out var value);
 
+        var type = new StackyType.Function(stack, StackyType.MakeComposite(stack, value));
+        
         return new TypedExpression.LiteralInteger(literal, type);
     }
-    private static TypedExpression BuildLiteral(ref InferenceState state, SyntaxExpression.LiteralString literal) => new TypedExpression.LiteralString(literal, new StackyType.String());
-    
+    private static TypedExpression BuildLiteral(ref InferenceState state, SyntaxExpression.LiteralString literal)
+    {
+        state = state.NewStackVariable(out var stack);
+        var type = new StackyType.Function(stack, StackyType.MakeComposite(stack, new StackyType.String()));
+        
+        return new TypedExpression.LiteralString(literal, type);
+    }
+
     private TypedExpression BuildApplication(ref InferenceState state, SyntaxExpression.Application application)
     {
         var expressions = new List<TypedExpression>();
@@ -132,24 +144,26 @@ public class InferenceBuilder
             expressions.Add(typed);
         }
 
-        StackyType input = new StackyType.Void();
-        StackyType output = new StackyType.Void();
-
-        foreach (var typed in expressions)
+        if (expressions.Count == 0)
         {
-            if (typed.Type is StackyType.Function function)
-            {
-                input = Apply(ref state, function.Input, output, input);
-                output = Apply(ref state, output, function.Input, function.Output);
-            }
-            else
-            {
-                output = StackyType.MakeComposite(output, typed.Type);
-            }
+            state = state.NewStackVariable(out var id);
+            return new TypedExpression.Application(application, new StackyType.Function(id, id), expressions);
+        }
+        
+        var firstType = (StackyType.Function) expressions[0].Type;
+
+        var input = firstType.Input;
+        var output = firstType.Output;
+        
+        for (var i = 1; i < expressions.Count; i++)
+        {
+            var expressionType = (StackyType.Function) expressions[i].Type;
+            
+            state = state.Unify(output, expressionType.Input);
+            output = expressionType.Output;
         }
         
         var type = new StackyType.Function(input, output);
-
         return new TypedExpression.Application(application, type, expressions);
     }
     
@@ -178,7 +192,7 @@ public class InferenceBuilder
             throw new Exception($"unknown identifier: {identifier}");
         }
         
-        var functionType = ToType(state, function);
+        var functionType = ToType(ref state, function);
         return new TypedExpression.Identifier(identifier, functionType);
     }
 
@@ -191,8 +205,10 @@ public class InferenceBuilder
             throw new TypeInferenceException($"Failed to find struct '{structName}' to initialise");
         }
 
-        var type = ToType(state, structDef);
-        
+        var structType = ToType(state, structDef);
+
+        state = state.NewStackVariable(out var stack);
+        var type = new StackyType.Function(stack, StackyType.MakeComposite(stack, structType));        
         return new TypedExpression.Identifier(identifier, type);
     }
     
@@ -200,12 +216,13 @@ public class InferenceBuilder
     {
         var fieldName = identifier.Value[1..];
 
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Gettable(fieldName), out var structType);
 
         state = state.NewVariable(new StackySort.Any(), out var output);
         state = state.Unify(output, StackyType.MakeGetter(structType, fieldName));
         
-        var type = new StackyType.Function(structType, output);
+        var type = new StackyType.Function(StackyType.MakeComposite(stack, structType), StackyType.MakeComposite(stack, output));
         
         return new TypedExpression.Identifier(identifier, type);
     }
@@ -214,14 +231,13 @@ public class InferenceBuilder
     {
         var fieldName = identifier.Value[1..];
 
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Settable(fieldName), out var structType);
 
         state = state.NewVariable(new StackySort.Any(), out var value);
         state = state.Unify(value, StackyType.MakeSetter(structType, fieldName));
         
-        var input = StackyType.MakeComposite(structType, value);
-        
-        var type = new StackyType.Function(input, structType);
+        var type = new StackyType.Function(StackyType.MakeComposite(stack, structType, value), StackyType.MakeComposite(stack, structType));
         
         return new TypedExpression.Identifier(identifier, type);
     }
@@ -229,21 +245,13 @@ public class InferenceBuilder
     private TypedExpression BuildFunction(ref InferenceState state, SyntaxExpression.Function function)
     {
         var expr = Build(ref state, function.Body);
+        var functionType = (StackyType.Function)expr.Type;
 
-        StackyType type;
-        if (expr.Type is StackyType.Function func)
-        {
-            type = func;
-        }
-        else
-        {
-            type = new StackyType.Function(new StackyType.Void(), expr.Type);
-        }
+        state = state.NewStackVariable(out var stack); 
 
         // since this is a function value, rather than a direct invokable we need to wrap it
-        var funcType = new StackyType.Function(new StackyType.Void(), type);
-        
-        return new TypedExpression.Function(function, funcType, expr);
+        var type = new StackyType.Function(stack, StackyType.MakeComposite(stack, functionType));
+        return new TypedExpression.Function(function, type, expr);
     }
     
     public static StackyType Apply(ref InferenceState state, StackyType baseType, StackyType remove, StackyType add)

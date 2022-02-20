@@ -22,7 +22,8 @@ public class StructExpressionSyntax : SyntaxBase
         var function = typed.Functions.Single();
         
         var id = (TypedExpression.Identifier)function.Body;
-        id.Type.Should().BeOfType<StackyType.Struct>()
+        var idFunc = (StackyType.Function)id.Type;
+        idFunc.Output.Should().BeOfType<StackyType.Struct>()
             .Which.Fields.Should().BeEmpty();
     }  
     
@@ -73,9 +74,10 @@ public class StructExpressionSyntax : SyntaxBase
         var function = typed.Functions.Single();
         
         var getter = ((TypedExpression.Application)function.Body).Expressions[1];
-        getter.Type.Should().BeOfType<StackyType.Function>()
-            .Which.Output.Should().BeOfType<StackyType.Function>()
-            .Which.Output.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
+        var getterFunc = GetOutputHead(getter.Type);
+        var getterValue = GetOutputHead(getterFunc);
+        
+        getterValue.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
     }    
     
     [Fact]

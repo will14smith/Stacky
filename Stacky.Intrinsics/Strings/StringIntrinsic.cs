@@ -10,9 +10,12 @@ public class StringIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Printable(), out var input);
         
-        type = new StackyType.Function(input, new StackyType.String());
+        type = new StackyType.Function(
+            StackyType.MakeComposite(stack, input), 
+            StackyType.MakeComposite(stack, new StackyType.String()));
         
         return state;
     }

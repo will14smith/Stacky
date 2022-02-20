@@ -10,9 +10,10 @@ public class ConcatIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+        state = state.NewStackVariable(out var stack);
         var str = new StackyType.String();
         
-        type = new StackyType.Function(StackyType.MakeComposite(str, str), str);
+        type = new StackyType.Function(StackyType.MakeComposite(stack, str, str), StackyType.MakeComposite(stack, str));
         
         return state;
     }

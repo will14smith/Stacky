@@ -10,7 +10,9 @@ public class OpenReadIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        type = new StackyType.Function(new StackyType.String(), new FileInferenceType());
+        state = state.NewStackVariable(out var stack);
+        
+        type = new StackyType.Function(StackyType.MakeComposite(stack, new StackyType.String()), StackyType.MakeComposite(stack, new FileInferenceType()));
         return state;
     }
 

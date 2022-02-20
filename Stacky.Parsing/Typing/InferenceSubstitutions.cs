@@ -71,7 +71,7 @@ public class InferenceSubstitutions
         {
             StackyType.Variable variable when substitutions.TryGetValue(variable.Id, out var variableReplacement) => variableReplacement,
             StackyType.Function function => new StackyType.Function(Apply(substitutions, function.Input), Apply(substitutions, function.Output)),
-            StackyType.Composite composite => StackyType.MakeComposite(composite.Types.Select(t => Apply(substitutions, t)).ToArray()),
+            StackyType.Composite composite => StackyType.MakeComposite(Apply(substitutions, composite.Left), Apply(substitutions, composite.Right)),
             StackyType.Getter getter => StackyType.MakeGetter(Apply(substitutions, getter.StructType), getter.FieldName),
             StackyType.Setter setter => StackyType.MakeSetter(Apply(substitutions, setter.StructType), setter.FieldName),
             

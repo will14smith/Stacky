@@ -11,7 +11,9 @@ public class ReadLineIntrinsic : IIntrinsic
     
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        type = new StackyType.Function(new FileInferenceType(), new StackyType.String());
+        state = state.NewStackVariable(out var stack);
+        
+        type = new StackyType.Function(StackyType.MakeComposite(stack, new FileInferenceType()), StackyType.MakeComposite(stack, new StackyType.String()));
         return state;
     }
 

@@ -10,10 +10,11 @@ public class SwapIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Any(), out var type1);
         state = state.NewVariable(new StackySort.Any(), out var type2);
 
-        type = new StackyType.Function(StackyType.MakeComposite(type1, type2), StackyType.MakeComposite(type2, type1));
+        type = new StackyType.Function(StackyType.MakeComposite(stack, type1, type2), StackyType.MakeComposite(stack, type2, type1));
         
         return state;
     }

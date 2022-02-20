@@ -10,12 +10,12 @@ public class InvokeIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(new StackySort.Any(), out var input);
-        state = state.NewVariable(new StackySort.Any(), out var output);
+        state = state.NewStackVariable(out var inStack);
+        state = state.NewStackVariable(out var outStack);
 
-        var fnType = new StackyType.Function(input, output);
+        var fnType = new StackyType.Function(inStack, outStack);
         
-        type = new StackyType.Function(StackyType.MakeComposite(input, fnType), output);
+        type = new StackyType.Function(StackyType.MakeComposite(inStack, fnType), outStack);
         
         return state;
     }

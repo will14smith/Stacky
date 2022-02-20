@@ -10,9 +10,10 @@ public class DuplicateIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+         state = state.NewStackVariable(out var stack);
          state = state.NewVariable(new StackySort.Any(), out var input);
 
-         type = new StackyType.Function(input, StackyType.MakeComposite(input, input));
+         type = new StackyType.Function(StackyType.MakeComposite(stack, input), StackyType.MakeComposite(stack, input, input));
          
          return state;
     }

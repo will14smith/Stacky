@@ -10,11 +10,12 @@ public class PrintIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-         state = state.NewVariable(new StackySort.Printable(), out var input);
-         
-         type = new StackyType.Function(input, new StackyType.Void());
-         
-         return state;
+        state = state.NewStackVariable(out var stack);
+        state = state.NewVariable(new StackySort.Printable(), out var input);
+
+        type = new StackyType.Function(StackyType.MakeComposite(stack, input), stack);
+
+        return state;
     }
 
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
@@ -23,6 +24,7 @@ public class PrintIntrinsic : IIntrinsic
          
          switch (a)
          {
+             case EvaluationValue.Boolean i: Console.WriteLine(i.Value); break;
              case EvaluationValue.Int64 i: Console.WriteLine(i.Value); break;
              case EvaluationValue.String s: Console.WriteLine(s.Value); break;
              

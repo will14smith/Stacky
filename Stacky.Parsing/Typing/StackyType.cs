@@ -9,24 +9,51 @@ public abstract record StackyType
     {
         public override string ToString()
         {
-            return Sort is StackySort.Any ? $"[Id={Id}]" : $"[Id={Id}, Sort={Sort}]";
+            return Sort is StackySort.Any ? $"T{Id}" : $"({Sort} T{Id})";
         }
     }
     
     public record Boolean : StackyType;
-    public record Integer(bool Signed, SyntaxType.IntegerSize Size) : StackyType;
-    public record String : StackyType;
 
-    public record Void : StackyType;
-
-    public record Composite(IReadOnlyList<StackyType> Types) : StackyType
+    public record Integer(bool Signed, SyntaxType.IntegerSize Size) : StackyType
     {
         public override string ToString()
         {
-            return $"[{string.Join(", ", Types)}]";
+            return $"{(Signed ? "i" : "u")}{Size.ToString()[1..]}";
         }
     }
-    public record Function(StackyType Input, StackyType Output) : StackyType;
+
+    public record String : StackyType
+    {
+        public override string ToString()
+        {
+            return "str";
+        }
+    }
+
+    public record Void : StackyType
+    {
+        public override string ToString()
+        {
+            return nameof(Void);
+        }
+    }
+
+    public record Composite(StackyType Left, StackyType Right) : StackyType
+    {
+        public override string ToString()
+        {
+            return $"[{Left}, {Right}]";
+        }
+    }
+
+    public record Function(StackyType Input, StackyType Output) : StackyType
+    {
+        public override string ToString()
+        {
+            return $"({Input} -> {Output})";
+        }
+    }
 
     public sealed record Struct(string Name, IReadOnlyList<StructField> Fields) : StackyType
     {
@@ -35,13 +62,20 @@ public abstract record StackyType
     }
     public record StructField(string Name, StackyType Type);
 
-    public static StackyType MakeComposite(params StackyType[] types) =>
-        types.Length switch
+    public static StackyType MakeComposite(params StackyType[] types)
+    {
+        var flat = FlattenComposites(types);
+
+        if (flat.Count == 0) return new Void();
+
+        var output = flat[0];
+        for (var i = 1; i < flat.Count; i++)
         {
-            0 => new Void(),
-            1 => types[0],
-            _ => new Composite(FlattenComposites(types))
-        };
+            output = new Composite(output, flat[i]);
+        }
+        return output;
+    }
+
     private static IReadOnlyList<StackyType> FlattenComposites(IEnumerable<StackyType> types) => types.SelectMany(Iterator).ToList();
     
     public static IEnumerable<StackyType> Iterator(StackyType type)
@@ -49,7 +83,7 @@ public abstract record StackyType
         return type switch
         {
             Void => Array.Empty<StackyType>(),
-            Composite comp => comp.Types,
+            Composite comp => Iterator(comp.Left).Concat(Iterator(comp.Right)),
             _ => new[] { type }
         };
     }
@@ -75,7 +109,7 @@ public abstract record StackyType
             return field.Type;
         }
 
-        return new Getter(structType, fieldName);
+        return new Setter(structType, fieldName);
     }
 }
 
@@ -85,9 +119,24 @@ public abstract record StackySort
     {
         public override bool IsCompatible(StackyType type) => true;
     }
+    public record Stack : StackySort
+    {
+        public override bool IsCompatible(StackyType type) => true;
+
+        public override string ToString()
+        {
+            return nameof(Stack);
+        }
+    }
+    
     public record Composite(IReadOnlyCollection<StackySort> Sorts) : StackySort
     {
         public override bool IsCompatible(StackyType type) => Sorts.All(x => x.IsCompatible(type));
+
+        public override string ToString()
+        {
+            return string.Join(", ", Sorts);
+        }
     }
 
     public record Comparable : StackySort
@@ -97,11 +146,21 @@ public abstract record StackySort
     public record Numeric : StackySort
     {
         public override bool IsCompatible(StackyType type) => type is StackyType.Integer;
+
+        public override string ToString()
+        {
+            return nameof(Numeric);
+        }
     }
 
     public record Printable : StackySort
     {
         public override bool IsCompatible(StackyType type) => type is StackyType.Boolean or StackyType.Integer or StackyType.String;
+        
+        public override string ToString()
+        {
+            return nameof(Printable);
+        }
     }
 
     public record Gettable(string Field) : StackySort

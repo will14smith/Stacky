@@ -123,7 +123,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello\nworld\nline3\nline4!";
         File.WriteAllText(_file, content);
         
-        var values = RunExpr($"\"{_file}\" open-read 0 {{ over is-eof not }} {{ over read-line drop 1 + }} while swap drop");
+        var values = RunExpr($"\"{_file}\" open-read 0 {{ over is-eof not }} {{ over read-line drop 1 + }} while swap close");
 
         values.Should().HaveCount(1);
         values[0].Should().BeOfType<EvaluationValue.Int64>().Which.Value.Should().Be(4);

@@ -10,14 +10,14 @@ public class IfIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(new StackySort.Any(), out var input);
+        state = state.NewStackVariable(out var stack);
 
         var condition = new StackyType.Boolean();
-        var trueFunc = new StackyType.Function(input, input);
+        var trueFunc = new StackyType.Function(stack, stack);
         
         type = new StackyType.Function(
-            StackyType.MakeComposite(input, condition, trueFunc),
-            input
+            StackyType.MakeComposite(stack, condition, trueFunc),
+            stack
         );
         return state;
     }

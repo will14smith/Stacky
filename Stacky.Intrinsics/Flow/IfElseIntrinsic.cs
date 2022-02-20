@@ -10,8 +10,8 @@ public class IfElseIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        state = state.NewVariable(new StackySort.Any(), out var input);
-        state = state.NewVariable(new StackySort.Any(), out var output);
+        state = state.NewStackVariable(out var input);
+        state = state.NewStackVariable(out var output);
         
         var condition = new StackyType.Boolean();
         var trueFunc = new StackyType.Function(input, output);

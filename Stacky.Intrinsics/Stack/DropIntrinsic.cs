@@ -10,9 +10,10 @@ public class DropIntrinsic : IIntrinsic
     
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Any(), out var input);
         
-        type = new StackyType.Function(input, new StackyType.Void());
+        type = new StackyType.Function(StackyType.MakeComposite(stack, input), stack);
         
         return state;
     }

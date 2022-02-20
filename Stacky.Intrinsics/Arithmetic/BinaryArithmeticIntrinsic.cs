@@ -10,9 +10,10 @@ public abstract class BinaryArithmeticIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
+        state = state.NewStackVariable(out var stack);
         state = state.NewVariable(new StackySort.Numeric(), out var input);
 
-        type = new StackyType.Function(StackyType.MakeComposite(input, input), input);
+        type = new StackyType.Function(StackyType.MakeComposite(stack, input, input), StackyType.MakeComposite(stack, input));
         
         return state;
     }
