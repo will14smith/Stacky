@@ -10,7 +10,8 @@ public class OpenReadIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        throw new NotImplementedException();
+        type = new StackyType.Function(new StackyType.String(), new FileInferenceType());
+        return state;
     }
 
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)

@@ -10,7 +10,8 @@ public class CloseIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        throw new NotImplementedException();
+        type = new StackyType.Function(new FileInferenceType(), new StackyType.Void());
+        return state;
     }
 
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
