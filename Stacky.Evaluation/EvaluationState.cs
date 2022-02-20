@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics.Contracts;
 using Stacky.Parsing.Syntax;
 
 namespace Stacky.Evaluation;
@@ -27,14 +28,31 @@ public class EvaluationState
         return _program.Structs.FirstOrDefault(x => x.Name.Value == name) ?? throw new Exception($"Struct '{name}' was not declared");
     }
 
+    [Pure]
     public EvaluationState Push(EvaluationValue value)
     {
         return new EvaluationState(_program, Stack.Push(value));
-    }      
+    }   
+    [Pure]
     public EvaluationState Pop(out EvaluationValue value)
     {
         var stack = Stack.Pop(out value);
 
         return new EvaluationState(_program, stack);
+    }
+}
+
+public static class EvaluationStateExtensions
+{
+    public static EvaluationState Pop<T>(this EvaluationState state, out T value) where T : EvaluationValue
+    {
+        state = state.Pop(out var rawValue);
+        if (rawValue is not T typedValue)
+        {
+            throw new InvalidCastException();
+        }
+
+        value = typedValue;
+        return state;
     }
 }
