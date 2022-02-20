@@ -42,6 +42,12 @@ public partial class CompilerEmitter
 
     public CompilerValue DefineNativeFunction(string name, NativeFunction type)
     {
+        var existing = _module.GetNamedFunction(name);
+        if (existing.Handle != IntPtr.Zero)
+        {
+            return new CompilerValue(existing.AsValue(), type);
+        }
+        
         var returnType = type.Output ?? _context.Handle.VoidType;
         var argTypes = type.Inputs.ToArray();
 

@@ -64,13 +64,9 @@ public class FunctionCompiler
         var i = 0;
         foreach (var function in functions)
         {
-            var type = _typeBuilder.BuildFunction((StackyType.Function)function.Type);
-            if (type.Inputs.Count != 0) { throw new InvalidOperationException(); }
-            if (type.Outputs.Count != 1) { throw new InvalidOperationException(); }
-
-            var functionType = (CompilerType.Function) type.Outputs[0]; 
+            var type = _typeBuilder.BuildFunction((StackyType.Function)function.Type.LastOutput());
             
-            var definition = _environment.DefineFunction($"__{_function.Name.Value}_anon<{i++}>", functionType);
+            var definition = _environment.DefineFunction($"__{_function.Name.Value}_anon<{i++}>", type);
             CompileFunction(definition, function.Body, mapping);
             
             mapping.Add(function, definition);

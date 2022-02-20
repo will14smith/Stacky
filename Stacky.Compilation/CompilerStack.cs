@@ -28,10 +28,10 @@ public class CompilerStack
         return _stack.Peek();
     }
 
-    public CompilerValue Peek()
+    public CompilerValue Peek(int depth = 0)
     {
-        var type = _stack.Peek();
-        return _emitter.Peek(type);
+        var types = _stack.Take(depth + 1).ToArray();
+        return _emitter.Peek(types);
     }
     
     public CompilerStack PopType(out CompilerType type)

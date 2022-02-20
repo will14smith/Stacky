@@ -4,6 +4,7 @@ A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
 - [ ] IO - basic read/write for files/stdio
+- [ ] Testing - compilation tests (maybe even comparing output from Eval to Comp) 
 - [ ] Implement GC
 - [ ] Stacky self interpreter
 - [ ] Optimising compiler - removing stack operations when not needed 

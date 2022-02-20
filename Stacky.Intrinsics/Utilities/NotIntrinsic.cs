@@ -27,6 +27,10 @@ public class NotIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        stack = stack.Pop<CompilerType.Boolean>(out var value, out _);
+
+        var result = context.Emitter.Not(value);
+        
+        return stack.Push(result);
     }
 }

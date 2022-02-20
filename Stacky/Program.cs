@@ -36,12 +36,10 @@ var _file = Path.GetTempFileName();
 var content = "hello\nworld\nline3\nline4!";
 File.WriteAllText(_file, content);
 
-// var input = $"main () -> () {{ \"{_file}\" open-read 0 {{ over is-eof not }} {{ over read-line drop 1 + }} while swap close print }}";
+var input = $"main () -> () {{ \"{_file}\" open-read 0 {{ over is-eof not }} {{ over read-line drop 1 + }} while swap close print }}";
 // var input = "main () -> () { false 0 { over not } invoke print print print }";
 
 // var input = "main () -> () { 1 test 2 test print print print print }\ntest i64 -> i64 str { { dup 1 + string } invoke }";
-
-var input = "struct Test { a str }\ntest () -> Test { @Test 1 ~a }";
 
 var parser = new Parser("input.st", input);
 var program = parser.Parse();

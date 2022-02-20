@@ -29,4 +29,11 @@ public partial class CompilerEmitter
         var value = _builder.CreateICmp(CmpInst.Predicate.ICMP_SGT, a.Value, b.Value, "result");
         return new CompilerValue(value, new CompilerType.Long());
     }
+
+    public CompilerValue Not(CompilerValue a)
+    {
+        var value = _builder.CreateNot(a.Value, "result");
+
+        return new CompilerValue(value, new CompilerType.Boolean());
+    }
 }

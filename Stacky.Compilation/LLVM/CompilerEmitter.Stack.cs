@@ -42,19 +42,24 @@ public partial class CompilerEmitter
         return value;
     }
 
-    public CompilerValue Peek(CompilerType type) => PeekInternal(type).Value;
+    public CompilerValue Peek(params CompilerType[] types) => PeekInternal(types).Value;
 
-    private (CompilerValue Value, Value NewStackPointer) PeekInternal(CompilerType type)
+    private (CompilerValue Value, Value NewStackPointer) PeekInternal(params CompilerType[] types)
     {
-        var llvmType = _types.ToLLVM(type);
+        var llvmTypes = types.Select(t => _types.ToLLVM(t)).ToArray();
+       
+        var peekType = types[^1];
+        var llvmPeekType = llvmTypes[^1];
+
+        var size = llvmTypes.Select(x => x.SizeOf).Aggregate(LLVMValueRef.CreateConstAdd);
         
         var stack = _builder.CreateLoad(_stackPointer, "sp");
-        var newStack = _builder.CreateGEP(stack, new[] { LLVMValueRef.CreateConstNeg(llvmType.SizeOf).AsValue() }, "sp");
+        var newStack = _builder.CreateGEP(stack, new[] { LLVMValueRef.CreateConstNeg(size).AsValue() }, "sp");
 
-        var stackTyped = _builder.CreatePointerCast(newStack, LLVMTypeRef.CreatePointer(llvmType, 0).AsType(), "spTyped");
+        var stackTyped = _builder.CreatePointerCast(newStack, LLVMTypeRef.CreatePointer(llvmPeekType, 0).AsType(), "spTyped");
         var llvmValue = _builder.CreateLoad(stackTyped, "value");
 
-        var value = new CompilerValue(llvmValue, type);
+        var value = new CompilerValue(llvmValue, peekType);
 
         return (value, newStack);
     } 

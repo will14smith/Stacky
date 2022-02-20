@@ -29,6 +29,8 @@ public class OverIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var a = stack.Peek(1);
+
+        return stack.Push(a);
     }
 }

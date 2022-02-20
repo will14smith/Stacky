@@ -16,7 +16,7 @@ public partial class CompilerEmitter
 
     public CompilerValue Literal(TypedExpression.LiteralInteger literal)
     {
-        if (literal.Type is not StackyType.Integer intType)
+        if (literal.Type.LastOutput() is not StackyType.Integer intType)
         {
             throw new InvalidCastException();
         }
@@ -44,6 +44,6 @@ public partial class CompilerEmitter
         var type = _context.Handle.Int1Type;
         var value = LLVMValueRef.CreateConstInt(type, literal ? 1u : 0u, true);
         
-        return new CompilerValue(value.AsValue(), new CompilerType.Long());
+        return new CompilerValue(value.AsValue(), new CompilerType.Boolean());
     }
 }

@@ -80,7 +80,6 @@ public class TypeInfering : SyntaxBase
         var type = GetOutputHead(literal.Type);
         type.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
     }
-
     
     [Fact]
     public void Application_WithAllArgsProvided_ShouldBeEmpty()

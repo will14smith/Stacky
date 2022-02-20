@@ -40,6 +40,8 @@ public class PrintIntrinsic : IIntrinsic
 
         return type switch
         {
+            // TODO update to (x ? "True" : "False")
+            CompilerType.Boolean => Printf(context, stack, "%d\n"),
             CompilerType.Long => Printf(context, stack, "%lld\n"),
             CompilerType.String => Printf(context, stack, "%s\n"),
             
@@ -50,7 +52,7 @@ public class PrintIntrinsic : IIntrinsic
     private static CompilerStack Printf(CompilerFunctionContext context, CompilerStack stack, string formatString)
     {
         var format = context.Emitter.Literal(formatString);
-        stack = stack.Pop<CompilerType.Long>(out var value, out _);
+        stack = stack.Pop(out var value, out _);
 
         var printf = context.Emitter.DefineNativeFunction("printf", context.Emitter.NativeFunctions.Printf);
         context.Emitter.Call(printf, new CompilerType.Long(), format, value);

@@ -49,7 +49,7 @@ public class StringIntrinsic : IIntrinsic
     private static CompilerStack CompileLong(CompilerFunctionContext context, CompilerStack stack)
     {
         var emitter = context.Emitter;
-        var sprintf = emitter.DefineNativeFunction("sprint", emitter.NativeFunctions.Sprintf);
+        var sprintf = emitter.DefineNativeFunction("sprintf", emitter.NativeFunctions.Sprintf);
         
         // allocate memory
         var bufferLength = (uint)(long.MinValue.ToString().Length + 1);
