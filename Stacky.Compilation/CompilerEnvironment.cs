@@ -24,6 +24,13 @@ public class CompilerEnvironment
         return _structs[name];
     }
 
+    public CompilerValue DefineMainFunction(string name, CompilerType.Function type, NativeFunction nativeType)
+    {
+        var value = _emitter.DefineNativeFunction(name, nativeType);
+        var newValue = new CompilerValue(value.Value, type);
+        _functions.Add(name, newValue);
+        return newValue;
+    }  
     public CompilerValue DefineFunction(string name, CompilerType.Function type)
     {
         var value = _emitter.DefineFunction(name, type);

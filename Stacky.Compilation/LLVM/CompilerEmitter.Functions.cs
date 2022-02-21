@@ -72,5 +72,6 @@ public partial class CompilerEmitter
 
     public void CallVoid(CompilerValue function, params CompilerValue[] args) => _builder.CreateCall(function.Value, args.Select(x => x.Value).ToArray());
 
+    public void Ret(CompilerValue value) => _builder.CreateRet(value.Value);
     public void RetVoid() => _builder.CreateRetVoid();
 }

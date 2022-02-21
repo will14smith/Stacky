@@ -51,7 +51,16 @@ public class FunctionCompiler
         
         stack = compiler.Compile(stack, body);
 
-        _emitter.RetVoid();
+        if (_function.Name.Value == "main" && ReferenceEquals(body, _function.Body))
+        {
+            // TODO remove downcast...
+            _emitter.Ret(_emitter.Truncate(_emitter.Literal(0), new CompilerType.Int()));
+        }
+        else
+        {
+            _emitter.RetVoid();
+        }
+
         _emitter.VerifyFunction(definition);
     }
 

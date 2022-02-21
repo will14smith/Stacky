@@ -25,7 +25,7 @@ public class Compiler
         Intrinsics = new CompilerIntrinsicRegistry(_allocator, _emitter);
     }
 
-    public void Compile()
+    public void Compile(string outputPath)
     {
         foreach (var definition in _program.Structs)
         {
@@ -34,7 +34,19 @@ public class Compiler
         
         foreach (var function in _program.Functions)
         {
-            _environment.DefineFunction(function.Name.Value, _typeBuilder.BuildFunction(function.Type));
+            if (function.Name.Value == "main")
+            {
+                if (function.Type.Input is not StackyType.Void || function.Type.Output is not StackyType.Void)
+                {
+                    throw new InvalidOperationException();
+                }
+                
+                _environment.DefineMainFunction(function.Name.Value, _typeBuilder.BuildFunction(function.Type), _emitter.NativeFunctions.Main);
+            }
+            else
+            {
+                _environment.DefineFunction(function.Name.Value, _typeBuilder.BuildFunction(function.Type));
+            }
         }
 
         foreach (var function in _program.Functions)
@@ -43,7 +55,7 @@ public class Compiler
             functionCompiler.Compile();
         }
         
-        _emitter.OutputAssembly("output.asm");
-        _emitter.OutputObject("output.o");
+        _emitter.OutputAssembly($"{outputPath}.asm");
+        _emitter.OutputObject(outputPath);
     }
 }

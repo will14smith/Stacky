@@ -1,0 +1,1 @@
+main () -> () { true { 1 print } if }

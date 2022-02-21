@@ -13,6 +13,8 @@ public class NativeFunctions
         var sizeT = context.Handle.Int64Type;
         var stringT = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
         var voidT = context.Handle.VoidType;
+
+        Main = new NativeFunction(Array.Empty<LLVMTypeRef>(), int32, false);
         
         GcAllocateRaw = new NativeFunction(new[] { int64 }, dataPointer, false);
         GcRootAdd = new NativeFunction(new[] { dataPointer }, voidT, false);
@@ -33,6 +35,8 @@ public class NativeFunctions
         Fclose = new NativeFunction(new[] { dataPointer }, int32, false);
     }
     
+    public NativeFunction Main { get; }
+
     public NativeFunction GcAllocateRaw { get; }
     public NativeFunction GcRootAdd { get; }
     public NativeFunction GcRootRemove { get; }

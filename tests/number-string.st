@@ -1,0 +1,1 @@
+﻿main () -> () { 123 string print }
