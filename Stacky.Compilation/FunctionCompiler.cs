@@ -1,7 +1,4 @@
-using System.Collections;
-using LLVMSharp;
 using Stacky.Compilation.LLVM;
-using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 
 namespace Stacky.Compilation;
@@ -88,12 +85,13 @@ public class FunctionCompiler
     {
         return expression switch
         {
-            TypedExpression.LiteralInteger literalInteger => Array.Empty<TypedExpression.Function>(),
-            TypedExpression.LiteralString literalString => Array.Empty<TypedExpression.Function>(),
-            TypedExpression.Identifier identifier => Array.Empty<TypedExpression.Function>(),
+            TypedExpression.LiteralInteger => Array.Empty<TypedExpression.Function>(),
+            TypedExpression.LiteralString => Array.Empty<TypedExpression.Function>(),
+            TypedExpression.Identifier => Array.Empty<TypedExpression.Function>(),
 
             TypedExpression.Function function => ExtractAnonymousFunctions(function.Body).Append(function),
             TypedExpression.Application application => application.Expressions.SelectMany(ExtractAnonymousFunctions),
+            TypedExpression.Binding binding => ExtractAnonymousFunctions(binding.Body),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };

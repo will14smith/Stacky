@@ -3,7 +3,7 @@
 A garbage-collected, concatenative, stack-based programming language for fun
 
 TODO List:
-- [ ] Name bindings - basic
+- [X] Name bindings - basic
 - [ ] Name bindings - closures
 - [ ] Implement GC
 - [ ] Stacky self interpreter

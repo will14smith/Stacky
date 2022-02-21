@@ -28,6 +28,7 @@ public partial class ExpressionCompiler
             TypedExpression.LiteralString literalString => CompileLiteral(stack, literalString),
 
             TypedExpression.Function function => CompileFunction(stack, function),
+            TypedExpression.Binding binding => CompileBinding(stack, binding),
             
             TypedExpression.Application application => CompileApplication(stack, application),
             TypedExpression.Identifier identifier => CompileIdentifier(stack, identifier),
@@ -41,10 +42,40 @@ public partial class ExpressionCompiler
 
     private CompilerStack CompileFunction(CompilerStack stack, TypedExpression.Function function) => stack.Push(_anonymousFunctionMapping[function]);
 
+    private CompilerStack CompileBinding(CompilerStack stack, TypedExpression.Binding binding)
+    {
+        var bindings = new Dictionary<string, CompilerValue>();
+        for (var i = binding.Names.Count - 1; i >= 0; i--)
+        {
+            var name = binding.Names[i];
+            stack = stack.Pop(out var value, out var removeRoot);
+
+            if (!bindings.ContainsKey(name.Value))
+            {
+                bindings[name.Value] = value;
+                // re-root as binding
+                _allocator.AddRoot(value);
+            }
+           
+            removeRoot();
+        }
+        
+        stack = stack.PushBindings(bindings);
+        stack = Compile(stack, binding.Body);
+        stack = stack.PopBindings();
+
+        return stack;
+    }
+
     private CompilerStack CompileApplication(CompilerStack stack, TypedExpression.Application application) => application.Expressions.Aggregate(stack, Compile);
 
     private CompilerStack CompileIdentifier(CompilerStack stack, TypedExpression.Identifier identifier)
     {
+        if (stack.TryGetBinding(identifier.Value, out var binding))
+        {
+            return stack.Push(binding);
+        }
+        
         if (identifier.Value.Length > 1)
         {
             switch (identifier.Value[0])
