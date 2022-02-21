@@ -49,4 +49,12 @@ public partial class CompilerEmitter
         
         _builder.CreateStore(value.Value, dest.Value);
     }
+    
+    public CompilerValue Truncate(CompilerValue a, CompilerType t)
+    {
+        var type = _types.ToLLVM(t).AsType();
+        var value = _builder.CreateCast(Instruction.CastOps.Trunc, a.Value, type);
+
+        return new CompilerValue(value, t);
+    }
 }

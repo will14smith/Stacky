@@ -1,6 +1,7 @@
 using System.Text;
 using Stacky.Compilation;
 using Stacky.Evaluation;
+using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 
 namespace Stacky.Intrinsics.Io;
@@ -11,7 +12,13 @@ public class WriteU8Intrinsic : IIntrinsic
     
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        throw new NotImplementedException();
+        state = state.NewStackVariable(out var stack);
+
+        type = new StackyType.Function(
+            StackyType.MakeComposite(stack, new FileInferenceType(), new StackyType.Integer(false, SyntaxType.IntegerSize.S8)),
+            stack
+        );
+        return state;
     }
 
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
@@ -28,6 +35,19 @@ public class WriteU8Intrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // int fputc(int c, FILE* stream);
+        var fputc = emitter.DefineNativeFunction("fputc", emitter.NativeFunctions.Fputc);
+        
+        stack = stack.Pop<CompilerType.Byte>(out var value, out _);
+        stack = stack.Pop<FileCompilerType>(out var file, out var removeRoot);
+
+        var result = emitter.Call(fputc, new CompilerType.Int(), value, file);
+        // TODO handle EOF return
+        
+        removeRoot();
+
+        return stack;
     }
 }

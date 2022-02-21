@@ -10,6 +10,7 @@ public class NativeFunctions
         var dataPointer = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
         var int32 = context.Handle.Int32Type;
         var int64 = context.Handle.Int64Type;
+        var sizeT = context.Handle.Int64Type;
         var stringT = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
         var voidT = context.Handle.VoidType;
         
@@ -23,7 +24,11 @@ public class NativeFunctions
         Printf = new NativeFunction(new[] { stringT }, int32, true);
         
         Feof = new NativeFunction(new[] { dataPointer }, int32, false);
+        Fgetc = new NativeFunction(new[] { dataPointer }, int32, false);
+        Fputc = new NativeFunction(new[] { int32, dataPointer }, int32, false);
         Fgets = new NativeFunction(new[] { stringT, int32, dataPointer }, stringT, false);
+        Fread = new NativeFunction(new[] { stringT, sizeT, sizeT, dataPointer }, sizeT, false);
+        Fprintf = new NativeFunction(new[] { dataPointer, stringT }, int32, true);
         Fopen = new NativeFunction(new[] { stringT, stringT }, dataPointer, false);
         Fclose = new NativeFunction(new[] { dataPointer }, int32, false);
     }
@@ -38,7 +43,11 @@ public class NativeFunctions
     public NativeFunction Printf { get; }
     
     public NativeFunction Feof { get; }
+    public NativeFunction Fgetc { get; }
+    public NativeFunction Fputc { get; }
     public NativeFunction Fgets { get; }
+    public NativeFunction Fread { get; }
+    public NativeFunction Fprintf { get; }
     public NativeFunction Fopen { get; }
     public NativeFunction Fclose { get; }
 }

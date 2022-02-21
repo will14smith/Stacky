@@ -10,7 +10,10 @@ public class OpenAppendIntrinsic : IIntrinsic
 
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        throw new NotImplementedException();
+        state = state.NewStackVariable(out var stack);
+        
+        type = new StackyType.Function(StackyType.MakeComposite(stack, new StackyType.String()), StackyType.MakeComposite(stack, new FileInferenceType()));
+        return state;
     }
 
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
@@ -27,6 +30,19 @@ public class OpenAppendIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // FILE* fopen(const char* path, const char* mode);
+        var fopen = emitter.DefineNativeFunction("fopen", emitter.NativeFunctions.Fopen);
+        
+        stack = stack.Pop<CompilerType.String>(out var path, out var removeRoot);
+        var mode = emitter.Literal("a");
+
+        var result = emitter.Call(fopen, new FileCompilerType(), path, mode);
+        // TODO handle NULL return
+        
+        removeRoot();
+        
+        return stack.Push(result);
     }
 }

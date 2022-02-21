@@ -7,6 +7,7 @@ public abstract record CompilerType
     public record String : CompilerType;
 
     public record Boolean : CompilerType;
+    public record Byte : CompilerType;
     public record Int : CompilerType;
     public record Long : CompilerType;
 

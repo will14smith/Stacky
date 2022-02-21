@@ -58,7 +58,7 @@ public class ReadLineIntrinsic : IIntrinsic
         var fgets = emitter.DefineNativeFunction("fgets", emitter.NativeFunctions.Fgets);
 
         // TODO handle lines > buffer
-        var bufferSize = 100;
+        var bufferSize = 128;
         var buffer = context.Allocator.AllocateRaw(new CompilerType.String(), bufferSize);
         
         stack = stack.Pop<FileCompilerType>(out var file, out var removeRoot);

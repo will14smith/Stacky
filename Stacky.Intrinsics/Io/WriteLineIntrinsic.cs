@@ -10,7 +10,13 @@ public class WriteLineIntrinsic : IIntrinsic
     
     public InferenceState Infer(InferenceState state, out StackyType type)
     {
-        throw new NotImplementedException();
+        state = state.NewStackVariable(out var stack);
+
+        type = new StackyType.Function(
+            StackyType.MakeComposite(stack, new FileInferenceType(), new StackyType.String()),
+            stack
+        );
+        return state;
     }
 
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
@@ -27,6 +33,22 @@ public class WriteLineIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // int fprintf (FILE* stream, const char* format, ...);
+        var fprintf = emitter.DefineNativeFunction("fprintf", emitter.NativeFunctions.Fprintf);
+        
+        stack = stack.Pop<CompilerType.String>(out var value, out var removeRootStr);
+        stack = stack.Pop<FileCompilerType>(out var file, out var removeRootFile);
+
+        var format = emitter.Literal("%s\n");
+        
+        var result = emitter.Call(fprintf, new CompilerType.Int(), file, format, value);
+        // TODO handle < 0 return
+
+        removeRootStr();
+        removeRootFile();
+
+        return stack;
     }
 }

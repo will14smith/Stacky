@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Stacky.Parsing.Syntax;
+﻿using Stacky.Parsing.Syntax;
 
 namespace Stacky.Parsing.Typing;
 
