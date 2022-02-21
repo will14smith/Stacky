@@ -1,4 +1,5 @@
 ﻿using System.CommandLine;
+using Stacky;
 using Stacky.Compilation;
 using Stacky.Evaluation;
 using Stacky.Intrinsics;
@@ -11,9 +12,11 @@ fileOption.IsRequired = true;
 var outputOption = new Option<FileInfo>("--output");
 outputOption.IsRequired = true;
 
-var evaluateCommand = new Command("evaluate") { fileOption };
+var typeOption = new Option<bool>("--type");
+
+var evaluateCommand = new Command("evaluate") { fileOption, typeOption };
 evaluateCommand.AddAlias("eval");
-evaluateCommand.SetHandler((FileInfo file) =>
+evaluateCommand.SetHandler((FileInfo file, bool type) =>
 {
     var input = File.ReadAllText(file.FullName);
     var parser = new Parser(file.FullName, input);
@@ -21,12 +24,16 @@ evaluateCommand.SetHandler((FileInfo file) =>
 
     var inferer = new TypeInferer();
     All.Populate(inferer.Intrinsics);
-    _ = inferer.Infer(program);
+    var typedProgram = inferer.Infer(program);
+    if (type)
+    {
+        TypedProgramPrinter.Print(typedProgram);
+    }
 
     var evaluator = new Evaluator(program);
     All.Populate(evaluator.Intrinsics);
     evaluator.Run();
-}, fileOption);
+}, fileOption, typeOption);
 
 var compileCommand = new Command("compile") { fileOption, outputOption };
 compileCommand.SetHandler((FileInfo file, FileInfo output) =>

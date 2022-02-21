@@ -17,7 +17,7 @@ public class Evaluator
     public ImmutableStack<EvaluationValue> Run() => Run(ImmutableStack<EvaluationValue>.Empty);
     public ImmutableStack<EvaluationValue> Run(ImmutableStack<EvaluationValue> initial)
     {
-        var state = new EvaluationState(_program, initial);
+        var state = new EvaluationState(_program, initial, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>>.Empty);
         var function = state.GetFunction("main");
 
         state = RunFunction(state, function);
@@ -36,6 +36,7 @@ public class Evaluator
             
             SyntaxExpression.Application application => RunApplication(state, application),
             SyntaxExpression.Identifier identifier => RunIdentifier(state, identifier),
+            SyntaxExpression.Binding binding => RunBinding(state, binding),
             
             _ => throw new ArgumentOutOfRangeException(nameof(expr))
         };
@@ -44,6 +45,11 @@ public class Evaluator
 
     private EvaluationState RunIdentifier(EvaluationState state, SyntaxExpression.Identifier identifier)
     {
+        if (state.TryLookupBinding(identifier.Value, out var binding))
+        {
+            return state.Push(binding!);
+        }
+        
         if (identifier.Value.Length > 1)
         {
             switch (identifier.Value[0])
@@ -62,6 +68,28 @@ public class Evaluator
         var function = state.GetFunction(identifier.Value);
         return RunFunction(state, function);
 
+    }
+
+    private EvaluationState RunBinding(EvaluationState state, SyntaxExpression.Binding binding)
+    {
+        var values = new Dictionary<string, EvaluationValue>();
+
+        for (var i = binding.Names.Count - 1; i >= 0; i--)
+        {
+            var name = binding.Names[i];
+            state = state.Pop(out var value);
+
+            if (!values.ContainsKey(name.Value))
+            {
+                values[name.Value] = value;
+            }
+        }
+
+        state = state.PushBindings(values);
+        state = RunExpression(state, binding.Body);
+        state = state.PopBindings();
+        
+        return state;
     }
 
     private static EvaluationState RunInit(ref EvaluationState state, SyntaxExpression.Identifier identifier)

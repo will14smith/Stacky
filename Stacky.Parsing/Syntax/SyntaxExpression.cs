@@ -7,4 +7,5 @@ public abstract record SyntaxExpression(SyntaxPosition Position) : SyntaxElement
     public record Identifier(SyntaxPosition Position, string Value) : SyntaxExpression(Position);
     public record Application(SyntaxPosition Position, IReadOnlyList<SyntaxExpression> Expressions) : SyntaxExpression(Position);
     public record Function(SyntaxPosition Position, SyntaxExpression Body) : SyntaxExpression(Position);
+    public record Binding(SyntaxPosition Position, IReadOnlyList<Identifier> Names, SyntaxExpression Body) : SyntaxExpression(Position);
 }

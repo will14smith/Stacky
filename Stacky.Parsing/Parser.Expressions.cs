@@ -46,10 +46,16 @@ public partial class Parser
             expression = ParseString(ref state);
             return true;
         }
-
+        
         if (current == '{')
         {
             expression = ParseAnonymousFunction(ref state);
+            return true;
+        }
+
+        if (current == '(')
+        {
+            expression = ParseBinding(ref state);
             return true;
         }
 
@@ -109,6 +115,6 @@ public partial class Parser
         return new SyntaxExpression.Identifier(position, name);
     }
 
-    private static bool IsIdentifierStart(char c) => c != '"' && c != '{' && c != '}' && !char.IsDigit(c) && !char.IsWhiteSpace(c);
-    private static bool IsIdentifier(char c) => c != '}' && !char.IsWhiteSpace(c);
+    private static bool IsIdentifierStart(char c) => c is not ('"' or '{' or '}' or '(' or ')') && !char.IsDigit(c) && !char.IsWhiteSpace(c);
+    private static bool IsIdentifier(char c) => c is not ('}' or ')') && !char.IsWhiteSpace(c);
 }

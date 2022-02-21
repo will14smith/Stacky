@@ -8,13 +8,15 @@ public class EvaluationState
 {
     private readonly SyntaxProgram _program;
     public ImmutableStack<EvaluationValue> Stack { get; }
+    public ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>> Bindings { get; }
 
-    public EvaluationState(SyntaxProgram program) : this(program, ImmutableStack<EvaluationValue>.Empty) { }
+    public EvaluationState(SyntaxProgram program) : this(program, ImmutableStack<EvaluationValue>.Empty, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>>.Empty) { }
 
-    public EvaluationState(SyntaxProgram program, ImmutableStack<EvaluationValue> stack)
+    public EvaluationState(SyntaxProgram program, ImmutableStack<EvaluationValue> stack, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>> bindings)
     {
         _program = program;
         Stack = stack;
+        Bindings = bindings;
     }
 
 
@@ -31,14 +33,38 @@ public class EvaluationState
     [Pure]
     public EvaluationState Push(EvaluationValue value)
     {
-        return new EvaluationState(_program, Stack.Push(value));
+        return new EvaluationState(_program, Stack.Push(value), Bindings);
     }   
     [Pure]
     public EvaluationState Pop(out EvaluationValue value)
     {
         var stack = Stack.Pop(out value);
 
-        return new EvaluationState(_program, stack);
+        return new EvaluationState(_program, stack, Bindings);
+    }
+
+    public EvaluationState PushBindings(IReadOnlyDictionary<string, EvaluationValue> bindings)
+    {
+        return new EvaluationState(_program, Stack, Bindings.Push(bindings));
+    }
+
+    public EvaluationState PopBindings()
+    {
+        return new EvaluationState(_program, Stack, Bindings.Pop(out _));
+    }
+
+    public bool TryLookupBinding(string name, out EvaluationValue? value)
+    {
+        foreach (var binding in Bindings)
+        {
+            if (binding.TryGetValue(name, out value))
+            {
+                return true;
+            }
+        }
+
+        value = default;
+        return false;
     }
 }
 
