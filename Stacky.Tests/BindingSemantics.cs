@@ -30,7 +30,7 @@ public class BindingSemantics : SemanticsBase
     [Fact]
     public void BindingOneVariable_ReferencingTheVariableInAFunction_IsNotAllowed()
     {
-        var code = "1 (a) { { a } invoke }";
+        var code = "1 (a) { { a } } invoke";
 
         var run = () => RunExpr(code);
 
