@@ -24,6 +24,13 @@ public class Runner
         }
     }
 
+    public async Task RunAllAsync()
+    {
+        var tasks = GetAllTests().Select(RunAsync);
+
+        await Task.WhenAll(tasks);
+    }
+
     public void Run(string file)
     {
         Console.WriteLine($"=== {Path.GetFileNameWithoutExtension(file)} ===");
@@ -33,6 +40,25 @@ public class Runner
 
         var compOutput = RunCompile(file);
         Compare("Compiled", compOutput, file);
+    }
+
+    private readonly SemaphoreSlim _consoleLock = new (1);
+    public async Task RunAsync(string file)
+    {
+        var evalOutput = Task.Run(() => RunEvaluate(file));
+        var compOutput = Task.Run(() => RunCompile(file));
+
+        await _consoleLock.WaitAsync();
+        try
+        {
+            Console.WriteLine($"=== {Path.GetFileNameWithoutExtension(file)} ===");
+            Compare("Evaluated", await evalOutput, file);
+            Compare("Compiled", await compOutput, file);
+        }
+        finally
+        {
+            _consoleLock.Release();
+        }
     }
     
     public void Update(string file)
@@ -159,7 +185,7 @@ public class Runner
                 ? Exec(_exeFile, args, tempDir) 
                 : Exec("dotnet", $"run --project \"{_projectFile}\" -- {args}", tempDir);
 
-            if (!compileOutput.WasSuccessful)
+            if (compileOutput.Exit != 0)
             {
                 return compileOutput;
             }
@@ -168,7 +194,7 @@ public class Runner
             var gccOutput = Exec("gcc", $"\"{objectFile}\" \"{_gcFile}\"", tempDir);
             if (!gccOutput.WasSuccessful)
             {
-                return gccOutput;
+                return compileOutput.Combine(gccOutput);
             }
 
             if (OutputTimes)
@@ -185,7 +211,7 @@ public class Runner
                 Console.WriteLine($"Running took {timer.Elapsed}");
             }
 
-            return output;
+            return compileOutput.Combine(output);
         }
         finally
         {
@@ -236,4 +262,6 @@ public record Output(string Out, string Err, int Exit)
         
         return sb.ToString();
     }
+
+    public Output Combine(Output other) => new(Out + other.Out, Err + other.Err, other.Exit);
 }

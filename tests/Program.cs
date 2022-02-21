@@ -20,15 +20,15 @@ rootCommand.AddGlobalOption(forceBuild);
 rootCommand.SetHandler((bool force) => RunAll(force), forceBuild);
 rootCommand.Invoke(args);
 
-static void RunAll(bool force)
+static async Task RunAll(bool force)
 {
     var runner = new Runner { SkipBuild = !force };
-    runner.RunAll();
+    await runner.RunAllAsync();
 }
-static void Run(FileInfo file, bool force)
+static async Task Run(FileInfo file, bool force)
 {
     var runner = new Runner { SkipBuild = !force };
-    runner.Run(file.FullName);
+    await runner.RunAsync(file.FullName);
 }
 static void Update(FileInfo file, bool force)
 {
