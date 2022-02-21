@@ -62,7 +62,7 @@ public class CompilerStack
 
 public static class CompilerStackExtensions
 {
-    public static CompilerStack Pop<T>(this CompilerStack stack, out CompilerValue value, out Action removeRoot)
+    public static CompilerStack Pop<T>(this CompilerStack stack, out CompilerValue value, out Action removeRoot) where T : CompilerType
     {
         stack = stack.Pop(out value, out removeRoot);
 

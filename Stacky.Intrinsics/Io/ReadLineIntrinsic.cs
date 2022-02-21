@@ -52,6 +52,22 @@ public class ReadLineIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // char* fgets (char* dst, int count, FILE* file);
+        var fgets = emitter.DefineNativeFunction("fgets", emitter.NativeFunctions.Fgets);
+
+        // TODO handle lines > buffer
+        var bufferSize = 100;
+        var buffer = context.Allocator.AllocateRaw(new CompilerType.String(), bufferSize);
+        
+        stack = stack.Pop<FileCompilerType>(out var file, out var removeRoot);
+
+        var result = emitter.Call(fgets, new CompilerType.String(), buffer, emitter.Literal(bufferSize), file);
+        // TODO handle NULL return
+        
+        removeRoot();
+        
+        return stack.Push(result);
     }
 }

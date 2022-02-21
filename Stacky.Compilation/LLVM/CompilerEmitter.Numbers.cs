@@ -27,7 +27,12 @@ public partial class CompilerEmitter
     public CompilerValue Greater(CompilerValue a, CompilerValue b)
     {
         var value = _builder.CreateICmp(CmpInst.Predicate.ICMP_SGT, a.Value, b.Value, "result");
-        return new CompilerValue(value, new CompilerType.Long());
+        return new CompilerValue(value, new CompilerType.Boolean());
+    }
+    public CompilerValue NotEqual(CompilerValue a, CompilerValue b)
+    {
+        var value = _builder.CreateICmp(CmpInst.Predicate.ICMP_NE, a.Value, b.Value, "result");
+        return new CompilerValue(value, new CompilerType.Boolean());
     }
 
     public CompilerValue Not(CompilerValue a)

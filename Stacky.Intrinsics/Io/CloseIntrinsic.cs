@@ -28,6 +28,17 @@ public class CloseIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // int fclose(FILE* file);
+        var fclose = emitter.DefineNativeFunction("fclose", emitter.NativeFunctions.Fclose);
+        
+        stack = stack.Pop<FileCompilerType>(out var file, out var removeRoot);
+        
+        var result = emitter.Call(fclose, new CompilerType.Long(), file);
+        // TODO handle non-zero return
+        removeRoot();
+        
+        return stack;
     }
 }

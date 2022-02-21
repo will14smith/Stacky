@@ -41,6 +41,8 @@ public class CompilerTypeBuilder
             StackyType.Function function => BuildFunction(function),
             StackyType.Struct definition => BuildStruct(definition),
             
+            ICompilerTypeConversion conversion => conversion.ToCompilerType(),
+            
             _ => throw new ArgumentOutOfRangeException()
         };
     }

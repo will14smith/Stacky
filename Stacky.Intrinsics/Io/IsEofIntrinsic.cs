@@ -28,6 +28,18 @@ public class IsEofIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // int feof(FILE* file)
+        var feof = emitter.DefineNativeFunction("feof", emitter.NativeFunctions.Feof);
+
+        stack = stack.Pop<FileCompilerType>(out var file, out var removeRoot);
+        var result = emitter.Call(feof, new CompilerType.Int(), file);
+        removeRoot();
+
+        var boolResult = emitter.NotEqual(result, emitter.Literal(0));
+        
+        return stack.Push(boolResult);
     }
+
 }

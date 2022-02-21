@@ -21,8 +21,13 @@ public class NativeFunctions
         Strlen = new NativeFunction(new[] { stringT }, int64, false);
         Strcat = new NativeFunction(new[] { stringT, stringT }, stringT, false);
         Printf = new NativeFunction(new[] { stringT }, int32, true);
+        
+        Feof = new NativeFunction(new[] { dataPointer }, int32, false);
+        Fgets = new NativeFunction(new[] { stringT, int32, dataPointer }, stringT, false);
+        Fopen = new NativeFunction(new[] { stringT, stringT }, dataPointer, false);
+        Fclose = new NativeFunction(new[] { dataPointer }, int32, false);
     }
-
+    
     public NativeFunction GcAllocateRaw { get; }
     public NativeFunction GcRootAdd { get; }
     public NativeFunction GcRootRemove { get; }
@@ -31,4 +36,9 @@ public class NativeFunctions
     public NativeFunction Strlen { get; }
     public NativeFunction Strcat { get; }
     public NativeFunction Printf { get; }
+    
+    public NativeFunction Feof { get; }
+    public NativeFunction Fgets { get; }
+    public NativeFunction Fopen { get; }
+    public NativeFunction Fclose { get; }
 }

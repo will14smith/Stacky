@@ -30,6 +30,19 @@ public class OpenReadIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        throw new NotImplementedException();
+        var emitter = context.Emitter;
+        
+        // FILE* fopen(const char* path, const char* mode);
+        var fopen = emitter.DefineNativeFunction("fopen", emitter.NativeFunctions.Fopen);
+        
+        stack = stack.Pop<CompilerType.String>(out var path, out var removeRoot);
+        var mode = emitter.Literal("r");
+
+        var result = emitter.Call(fopen, new FileCompilerType(), path, mode);
+        // TODO handle NULL return
+        
+        removeRoot();
+        
+        return stack.Push(result);
     }
 }

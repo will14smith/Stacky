@@ -38,7 +38,7 @@ public partial class CompilerEmitter
         
         return new CompilerValue(value.AsValue(), new CompilerType.Long());
     }
-    
+
     public CompilerValue Literal(bool literal)
     {
         var type = _context.Handle.Int1Type;

@@ -42,7 +42,7 @@ public class Compiler
             var functionCompiler = new FunctionCompiler(function, _allocator, _environment, _emitter, Intrinsics, _typeBuilder);
             functionCompiler.Compile();
         }
-
+        
         _emitter.OutputAssembly("output.asm");
         _emitter.OutputObject("output.o");
     }

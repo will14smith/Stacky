@@ -32,7 +32,7 @@ using Stacky.Parsing.Typing;
 // }
 // ";
 
-var _file = Path.GetTempFileName(); 
+var _file = "./temp.test"; 
 var content = "hello\nworld\nline3\nline4!";
 File.WriteAllText(_file, content);
 
