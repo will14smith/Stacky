@@ -1,4 +1,5 @@
-﻿using Stacky.Parsing.Syntax;
+﻿using System.Diagnostics;
+using Stacky.Parsing.Syntax;
 
 namespace Stacky.Parsing.Typing;
 
@@ -112,6 +113,7 @@ public class InferenceBuilder
             SyntaxExpression.Application application => BuildApplication(ref state, application),
             SyntaxExpression.Identifier identifier => BuildIdentifier(ref state, identifier),
             SyntaxExpression.Function function => BuildFunction(ref state, function),
+            SyntaxExpression.Binding binding => BuildBinding(ref state, binding),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };
@@ -169,6 +171,13 @@ public class InferenceBuilder
     
     private TypedExpression BuildIdentifier(ref InferenceState state, SyntaxExpression.Identifier identifier)
     {
+        if (state.TryLookupBinding(identifier.Value, out var binding))
+        {
+            state = state.NewStackVariable(out var stack);
+            var type = new StackyType.Function(stack, StackyType.MakeComposite(stack, binding!));
+            return new TypedExpression.Identifier(identifier, type);
+        }
+        
         if (identifier.Value.Length > 1)
         {
             switch (identifier.Value[0])
@@ -254,34 +263,36 @@ public class InferenceBuilder
         return new TypedExpression.Function(function, type, expr);
     }
     
-    public static StackyType Apply(ref InferenceState state, StackyType baseType, StackyType remove, StackyType add)
+    private TypedExpression BuildBinding(ref InferenceState state, SyntaxExpression.Binding binding)
     {
-        return Add(ref state, Remove(ref state, baseType, remove), add);
-    }
-
-    private static StackyType Remove(ref InferenceState state, StackyType type, StackyType remove)
-    {
-        var types = StackyType.Iterator(type).ToList();
-        var removeTypes = StackyType.Iterator(remove).ToList();
-
-        while (types.Count > 0 && removeTypes.Count > 0)
+        state = state.NewStackVariable(out var stack);
+        var inputs = new List<StackyType> { stack };
+        var nameExpressions = new List<TypedExpression.Identifier>();
+        var names = new Dictionary<string, StackyType>();
+        foreach (var name in binding.Names)
         {
-            state = state.Unify(types[^1], removeTypes[^1]);
+            state = state.NewVariable(new StackySort.Any(), out var nameType);
             
-            types.RemoveAt(types.Count - 1);
-            removeTypes.RemoveAt(removeTypes.Count - 1);
+            nameExpressions.Add(new TypedExpression.Identifier(name, nameType));
+            names[name.Value] = nameType;
+            inputs.Add(nameType);
         }
         
-        return StackyType.MakeComposite(types.ToArray());
-    }
+        var removeBindings = new StackyType.Function(StackyType.MakeComposite(inputs.ToArray()), StackyType.MakeComposite(stack));
 
-    private static StackyType Add(ref InferenceState state, StackyType type, StackyType add)
-    {
-        var types = StackyType.Iterator(type).ToList();
-        var addTypes = StackyType.Iterator(add).ToList();
+        state = state.PushBindings(names);
+
+        var body = Build(ref state, binding.Body);
+        var bodyType = (StackyType.Function)body.Type;
         
-        types.AddRange(addTypes);
+        state = state.PopBindings();
+        state = state.Unify(removeBindings.Output, bodyType.Input);        
         
-        return StackyType.MakeComposite(types.ToArray());
+        var type = new StackyType.Function(
+            removeBindings.Input,
+            bodyType.Output
+        );
+        
+        return new TypedExpression.Binding(binding, type, nameExpressions, body);
     }
 }

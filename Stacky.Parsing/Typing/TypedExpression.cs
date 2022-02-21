@@ -21,5 +21,6 @@ public abstract record TypedExpression(SyntaxExpression Syntax, StackyType Type)
     
     public record Application(SyntaxExpression Syntax, StackyType Type, IReadOnlyList<TypedExpression> Expressions) : TypedExpression(Syntax, Type);
     public record Function(SyntaxExpression Syntax, StackyType Type, TypedExpression Body) : TypedExpression(Syntax, Type);
+    public record Binding(SyntaxExpression Syntax, StackyType Type, IReadOnlyList<Identifier> Names, TypedExpression Body) : TypedExpression(Syntax, Type);
 
 }

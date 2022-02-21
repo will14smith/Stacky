@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System;
+using FluentAssertions;
 using Stacky.Evaluation;
 using Xunit;
 
@@ -24,6 +25,16 @@ public class BindingSemantics : SemanticsBase
         var stack = RunExpr(code);
 
         stack.Should().HaveCount(1);
+    }   
+    
+    [Fact]
+    public void BindingOneVariable_ReferencingTheVariableInAFunction_IsNotAllowed()
+    {
+        var code = "1 (a) { { a } invoke }";
+
+        var run = () => RunExpr(code);
+
+        run.Should().Throw<Exception>();
     }   
     
     [Fact]

@@ -52,6 +52,7 @@ public class InferenceSubstitutions
             TypedExpression.Identifier identifier => new TypedExpression.Identifier(identifier.Syntax, Apply(_substitutions, identifier.Type)),
 
             TypedExpression.Function function => new TypedExpression.Function(function.Syntax, Apply(_substitutions, function.Type), Apply(function.Body)),
+            TypedExpression.Binding binding => new TypedExpression.Binding(binding.Syntax, Apply(_substitutions, binding.Type), binding.Names.Select(Apply).Cast<TypedExpression.Identifier>().ToList(), Apply(binding.Body)),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };

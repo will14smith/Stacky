@@ -60,7 +60,7 @@ public class TypedProgramPrinter
 
             case TypedExpression.Identifier identifier:
                 Indent(indent);
-                PrintProgram($"\"{identifier.Value}\" ");
+                PrintProgram($"{identifier.Value} ");
                 PrintType(identifier.Type);
                 Console.WriteLine();
                 break;
@@ -89,6 +89,35 @@ public class TypedProgramPrinter
 
                 PrintType(functionType.Output);
                 Console.WriteLine();
+                break;
+            
+            case TypedExpression.Binding binding:
+                Indent(indent);
+                PrintProgram("(");
+                Console.WriteLine();
+
+                foreach (var name in binding.Names)
+                {
+                    Indent(indent + 2);
+                    PrintProgram($"{name.Value} ");
+                    PrintType(name.Type);
+                    Console.WriteLine();
+                }
+                
+                Indent(indent);
+                PrintProgram(")");
+                Console.WriteLine();
+
+                Indent(indent);
+                PrintProgram("{");
+                Console.WriteLine();
+
+                Print(binding.Body, indent + 2);
+
+                Indent(indent);
+                PrintProgram("}");
+                Console.WriteLine();
+
                 break;
             
             default: throw new ArgumentOutOfRangeException(nameof(expr));

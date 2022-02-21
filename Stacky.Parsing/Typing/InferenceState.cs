@@ -8,17 +8,19 @@ public class InferenceState
 {
     private readonly ImmutableList<StackyType.Variable> _variables;
     private readonly ImmutableList<InferenceConstraint> _constraints;
+    private readonly ImmutableStack<IReadOnlyDictionary<string, StackyType>> _bindings;
 
     public SyntaxProgram Program { get; }
     public IReadOnlyList<StackyType.Variable> Variables => _variables.ToList();
     public IReadOnlyList<InferenceConstraint> Constraints => _constraints.ToList();
 
-    public InferenceState(SyntaxProgram program) : this(program, ImmutableList<StackyType.Variable>.Empty, ImmutableList<InferenceConstraint>.Empty) { }
-    private InferenceState(SyntaxProgram program, ImmutableList<StackyType.Variable> variables, ImmutableList<InferenceConstraint> constraints)
+    public InferenceState(SyntaxProgram program) : this(program, ImmutableList<StackyType.Variable>.Empty, ImmutableList<InferenceConstraint>.Empty, ImmutableStack<IReadOnlyDictionary<string, StackyType>>.Empty) { }
+    private InferenceState(SyntaxProgram program, ImmutableList<StackyType.Variable> variables, ImmutableList<InferenceConstraint> constraints, ImmutableStack<IReadOnlyDictionary<string, StackyType>> bindings)
     {
         Program = program;
         _variables = variables;
         _constraints = constraints;
+        _bindings = bindings;
     }
 
     [Pure]
@@ -40,11 +42,6 @@ public class InferenceState
     }
     
     [Pure]
-    private InferenceState WithVariables(ImmutableList<StackyType.Variable> variables) => new(Program, variables, _constraints);
-    [Pure]
-    private InferenceState WithConstraints(ImmutableList<InferenceConstraint> constraints) => new(Program, _variables, constraints);
-
-    [Pure]
     public SyntaxStruct LookupStruct(string structName)
     {
         var structDef = Program.Structs.FirstOrDefault(x => x.Name.Value == structName);
@@ -56,4 +53,33 @@ public class InferenceState
         
         return structDef;
     }
+
+    [Pure]
+    public bool TryLookupBinding(string name, out StackyType? type)
+    {
+        foreach (var bindings in _bindings)
+        {
+            if (bindings.TryGetValue(name, out type))
+            {
+                return true;
+            }
+        }
+
+        type = default;
+        return false;
+    }
+
+    [Pure]
+    public InferenceState PushBindings(IReadOnlyDictionary<string, StackyType> newBindings) => WithBindings(_bindings.Push(newBindings));
+
+    [Pure]
+    public InferenceState PopBindings() => WithBindings(_bindings.Pop());
+
+    [Pure]
+    private InferenceState WithVariables(ImmutableList<StackyType.Variable> variables) => new(Program, variables, _constraints, _bindings);
+    [Pure]
+    private InferenceState WithConstraints(ImmutableList<InferenceConstraint> constraints) => new(Program, _variables, constraints, _bindings);
+    [Pure]
+    private InferenceState WithBindings(ImmutableStack<IReadOnlyDictionary<string, StackyType>> bindings) => new(Program, _variables, _constraints, bindings);
+
 }
