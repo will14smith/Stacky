@@ -53,6 +53,22 @@ public partial class Parser
                 state = state.Advance();
             }
 
+            if (state.Current == '/')
+            {
+                var nextState = state.Advance();
+                if (!nextState.IsEof && nextState.Current == '/')
+                {
+                    state = nextState.Advance();
+                
+                    while (!state.IsEof && state.Current != '\n')
+                    {
+                        state = state.Advance();
+                    }
+
+                    state = state.SkipWhiteSpace();
+                }
+            }
+
             return state;
         }
     }
