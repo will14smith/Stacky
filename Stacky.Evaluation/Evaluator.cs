@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text;
 using Stacky.Parsing.Syntax;
 
 namespace Stacky.Evaluation;
@@ -31,7 +32,7 @@ public class Evaluator
         expr switch
         {
             SyntaxExpression.LiteralInteger literal => state.Push(new EvaluationValue.Int64(literal.Value)),
-            SyntaxExpression.LiteralString literal => state.Push(new EvaluationValue.String(literal.Value)),
+            SyntaxExpression.LiteralString literal => state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes(literal.Value))),
             SyntaxExpression.Function function => state.Push(new EvaluationValue.Function(function.Body)),
             
             SyntaxExpression.Application application => RunApplication(state, application),

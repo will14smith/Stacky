@@ -1,4 +1,5 @@
-﻿using Stacky.Compilation;
+﻿using System.Text;
+using Stacky.Compilation;
 using Stacky.Evaluation;
 using Stacky.Parsing.Typing;
 
@@ -22,7 +23,7 @@ public class ReadStrIntrinsic : IIntrinsic
 
         using var reader = new StreamReader(file.Stream, leaveOpen: true);
         var str = reader.ReadToEnd();
-        state = state.Push(new EvaluationValue.String(str));
+        state = state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes(str)));
 
         return state;
     }

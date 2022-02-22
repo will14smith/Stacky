@@ -25,7 +25,7 @@ public class WriteLineIntrinsic : IIntrinsic
         state = state.Pop<FileEvaluationValue>(out var file);
 
         using var writer = new StreamWriter(file.Stream, leaveOpen: true);
-        writer.Write(str.Value);
+        writer.Write(str.StringValue);
         writer.Write('\n');
 
         return state;

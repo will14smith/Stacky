@@ -19,8 +19,8 @@ public class OpenWriteIntrinsic : IIntrinsic
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
     {
         state = state.Pop<EvaluationValue.String>(out var pathStr);
-
-        var path = pathStr.Value;
+        
+        var path = pathStr.StringValue;
 
         var stream = File.Open(path, FileMode.Create, FileAccess.Write);
         var file = new FileEvaluationValue(stream);

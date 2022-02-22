@@ -1,4 +1,5 @@
-﻿using Stacky.Compilation;
+﻿using System.Text;
+using Stacky.Compilation;
 using Stacky.Evaluation;
 using Stacky.Parsing.Typing;
 
@@ -26,7 +27,7 @@ public class StringIntrinsic : IIntrinsic
 
         return a switch
         {
-            EvaluationValue.Int64 i => state.Push(new EvaluationValue.String($"{i.Value}")),
+            EvaluationValue.Int64 i => state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes($"{i.Value}"))),
             EvaluationValue.String s => state.Push(s),
             
             _ => throw new InvalidCastException($"arg 0 was an unexpected type: {a}")

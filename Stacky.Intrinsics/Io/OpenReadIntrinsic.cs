@@ -20,8 +20,8 @@ public class OpenReadIntrinsic : IIntrinsic
     {
         state = state.Pop<EvaluationValue.String>(out var pathStr);
 
-        var path = pathStr.Value;
-
+        var path = pathStr.StringValue;
+        
         var stream = File.OpenRead(path);
         var file = new FileEvaluationValue(stream);
         

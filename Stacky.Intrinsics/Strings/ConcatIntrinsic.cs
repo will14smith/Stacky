@@ -32,7 +32,11 @@ public class ConcatIntrinsic : IIntrinsic
             throw new InvalidCastException($"Expected arg 1 to be String but got {b}");
         }
 
-        return state.Push(new EvaluationValue.String($"{aStr.Value}{bStr.Value}"));
+        var newStr = new byte[aStr.Value.Length + bStr.Value.Length];
+        aStr.Value.CopyTo(newStr, 0);
+        bStr.Value.CopyTo(newStr, aStr.Value.Length);
+        
+        return state.Push(new EvaluationValue.String(newStr));
     }
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)

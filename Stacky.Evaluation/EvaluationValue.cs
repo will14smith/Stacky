@@ -1,4 +1,5 @@
-﻿using Stacky.Parsing.Syntax;
+﻿using System.Text;
+using Stacky.Parsing.Syntax;
 
 namespace Stacky.Evaluation;
 
@@ -6,7 +7,11 @@ public abstract record EvaluationValue
 {
     public record Boolean(bool Value) : EvaluationValue;
     public record Int64(long Value) : EvaluationValue;
-    public record String(string Value) : EvaluationValue;
+
+    public record String(byte[] Value) : EvaluationValue
+    {
+        public string StringValue => Encoding.UTF8.GetString(Value);
+    }
 
     public record Function(SyntaxExpression Body) : EvaluationValue;
 

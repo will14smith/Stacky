@@ -20,7 +20,7 @@ public class OpenAppendIntrinsic : IIntrinsic
     {
         state = state.Pop<EvaluationValue.String>(out var pathStr);
 
-        var path = pathStr.Value;
+        var path = pathStr.StringValue;
 
         var stream = File.Open(path, FileMode.Append, FileAccess.Write);
         var file = new FileEvaluationValue(stream);

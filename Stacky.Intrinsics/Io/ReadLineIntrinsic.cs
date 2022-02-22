@@ -45,7 +45,7 @@ public class ReadLineIntrinsic : IIntrinsic
             buffer.Append((char)data);
         }
 
-        state = state.Push(new EvaluationValue.String(buffer.ToString()));
+        state = state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes(buffer.ToString())));
 
         return state;
     }

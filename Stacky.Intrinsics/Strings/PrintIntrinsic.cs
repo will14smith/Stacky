@@ -1,4 +1,5 @@
-﻿using Stacky.Compilation;
+﻿using System.Text;
+using Stacky.Compilation;
 using Stacky.Evaluation;
 using Stacky.Parsing.Typing;
 
@@ -26,7 +27,7 @@ public class PrintIntrinsic : IIntrinsic
          {
              case EvaluationValue.Boolean i: Console.WriteLine(i.Value); break;
              case EvaluationValue.Int64 i: Console.WriteLine(i.Value); break;
-             case EvaluationValue.String s: Console.WriteLine(s.Value); break;
+             case EvaluationValue.String s: Console.WriteLine(s.StringValue); break;
              
              default: throw new InvalidCastException($"arg 0 was an unexpected type: {a}");
          }

@@ -102,7 +102,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var values = RunExpr($"\"{_file}\" open-read dup read-str swap close");
 
         values.Should().HaveCount(1);
-        values[0].Should().BeOfType<EvaluationValue.String>().Which.Value.Should().Be(content);
+        values[0].Should().BeOfType<EvaluationValue.String>().Which.StringValue.Should().Be(content);
     }
     
     [Fact]
@@ -114,7 +114,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var values = RunExpr($"\"{_file}\" open-read dup read-line swap close");
 
         values.Should().HaveCount(1);
-        values[0].Should().BeOfType<EvaluationValue.String>().Which.Value.Should().Be("hello");
+        values[0].Should().BeOfType<EvaluationValue.String>().Which.StringValue.Should().Be("hello");
     }
     
     [Fact]

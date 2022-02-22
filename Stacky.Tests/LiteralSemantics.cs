@@ -26,7 +26,7 @@ public class LiteralSemantics : SemanticsBase
         var stack = RunExpr(code);
 
         stack.Should().HaveCount(1);
-        stack[0].Should().BeOfType<EvaluationValue.String>().Which.Value.Should().Be("a");
+        stack[0].Should().BeOfType<EvaluationValue.String>().Which.StringValue.Should().Be("a");
     }
         
     [Fact]
