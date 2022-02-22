@@ -38,7 +38,12 @@ public partial class ExpressionCompiler
     }
     
     private CompilerStack CompileLiteral(CompilerStack stack, TypedExpression.LiteralInteger literal) => stack.Push(_emitter.Literal(literal));
-    private CompilerStack CompileLiteral(CompilerStack stack, TypedExpression.LiteralString literal) => stack.Push(_emitter.Literal(literal.Value));
+    private CompilerStack CompileLiteral(CompilerStack stack, TypedExpression.LiteralString literal)
+    {
+        var value = _allocator.AllocateRaw(new CompilerType.String(), literal.Value.Length + 1);
+        _emitter.LiteralInto(value, literal.Value);
+        return stack.Push(value);
+    }
 
     private CompilerStack CompileFunction(CompilerStack stack, TypedExpression.Function function) => stack.Push(_anonymousFunctionMapping[function]);
 

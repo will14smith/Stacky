@@ -31,5 +31,19 @@ public class StringLength : IIntrinsic
         return state;
     }
 
-    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack) => throw new NotImplementedException();
+    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
+    {
+        var emitter = context.Emitter;
+
+        var strlen = emitter.DefineNativeFunction("strlen", emitter.NativeFunctions.Strlen);
+        
+        stack = stack.Pop<CompilerType.String>(out var str, out var removeRoot);
+
+        var len = emitter.Call(strlen, new CompilerType.Long(), str);
+        removeRoot();
+
+        stack = stack.Push(len);
+
+        return stack;
+    }
 }

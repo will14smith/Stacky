@@ -18,7 +18,7 @@ public class StringIndexSetter : IIntrinsic
         var chr = new StackyType.Integer(false, SyntaxType.IntegerSize.S8);
 
         type = new StackyType.Function(
-            StackyType.MakeComposite(stack, str, index, chr), 
+            StackyType.MakeComposite(stack, str, chr, index), 
             StackyType.MakeComposite(stack, str) 
         );
         return state;
@@ -38,5 +38,18 @@ public class StringIndexSetter : IIntrinsic
 
     }
 
-    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack) => throw new NotImplementedException();
-}
+    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
+    {
+        var emitter = context.Emitter;
+        
+        stack = stack.Pop<CompilerType.Long>(out var index, out _);
+        stack = stack.Pop<CompilerType.Byte>(out var chr, out _);
+        stack = stack.Pop<CompilerType.String>(out var str, out var removeRoot);
+        
+        emitter.StoreIndex(str, index, chr);
+        stack = stack.Push(str);
+        
+        removeRoot();
+
+        return stack;
+    }}

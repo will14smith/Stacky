@@ -747,6 +747,10 @@ namespace LLVMSharp.Interop
         {
             return LLVM.BuildMemSet(this, Ptr, Val, Len, Align);
         }
+        public LLVMValueRef BuildMemCpy(LLVMValueRef Dst, uint DstAlign, LLVMValueRef Src, uint SrcAlign, LLVMValueRef Size)
+        {
+            return LLVM.BuildMemCpy(this, Dst, DstAlign, Src, SrcAlign, Size);
+        }
 
         public override string ToString() => $"{nameof(LLVMBuilderRef)}: {Handle:X}";
     }

@@ -43,6 +43,7 @@ public class PrintIntrinsic : IIntrinsic
         {
             // TODO update to (x ? "True" : "False")
             CompilerType.Boolean => Printf(context, stack, "%d\n"),
+            CompilerType.Byte => Printf(context, stack, "%hhu\n"),
             CompilerType.Int => Printf(context, stack, "%d\n"),
             CompilerType.Long => Printf(context, stack, "%lld\n"),
             CompilerType.String => Printf(context, stack, "%s\n"),

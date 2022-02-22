@@ -35,5 +35,16 @@ public class StringIndexGetter : IIntrinsic
         return state;
     }
 
-    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack) => throw new NotImplementedException();
+    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
+    {
+        var emitter = context.Emitter;
+
+        stack = stack.Pop<CompilerType.Long>(out var index, out _);
+        stack = stack.Pop<CompilerType.String>(out var str, out var removeRoot);
+
+        var chr = emitter.LoadIndex(str, index);
+        removeRoot();
+        
+        return stack.Push(chr);
+    }
 }

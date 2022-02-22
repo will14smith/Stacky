@@ -697,6 +697,12 @@ namespace LLVMSharp
             var handle = Handle.BuildMemSet(Ptr.Handle, Val.Handle, Size.Handle, Align);
             
             return Context.GetOrCreate<CallInst>(handle);
+        }  
+        public CallInst CreateMemCpy(Value Dst, uint DstAlign, Value Src, uint SrcAlign, Value Size)
+        {
+            var handle = Handle.BuildMemCpy(Dst.Handle, DstAlign, Src.Handle, SrcAlign, Size.Handle);
+            
+            return Context.GetOrCreate<CallInst>(handle);
         }
     }
 }

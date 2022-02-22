@@ -34,5 +34,22 @@ public class StringRangeSetter : IIntrinsic
         return state;
     }
 
-    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack) => throw new NotImplementedException();
+    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
+    {
+        var emitter = context.Emitter;
+
+        stack = stack.Pop<CompilerType.Long>(out var index, out _);
+        stack = stack.Pop<CompilerType.String>(out var update, out var removeRootUpdate);
+        stack = stack.Pop<CompilerType.String>(out var str, out var removeRootStr);
+        
+        var strlen = emitter.DefineNativeFunction("strlen", emitter.NativeFunctions.Strlen);
+        var length = emitter.Call(strlen, new CompilerType.Long(), update);
+
+        emitter.Copy(str, index, update, emitter.Literal(0), length);
+        removeRootUpdate();
+        stack = stack.Push(str);
+        removeRootStr();
+        
+        return stack;
+    }
 }

@@ -1,5 +1,4 @@
-﻿using LLVMSharp;
-using LLVMSharp.Interop;
+﻿using LLVMSharp.Interop;
 using Stacky.Parsing.Syntax;
 using Stacky.Parsing.Typing;
 
@@ -14,6 +13,13 @@ public partial class CompilerEmitter
         return new CompilerValue(value, new CompilerType.String());
     }
 
+    public void LiteralInto(CompilerValue target, string literal)
+    {
+        var value = _builder.CreateGlobalStringPtr(literal, "str");
+
+        _builder.CreateMemCpy(target.Value, 0, value, 0, LLVMValueRef.CreateConstInt(_context.Handle.Int64Type, (ulong)literal.Length, false).AsValue());
+    }
+
     public CompilerValue Literal(TypedExpression.LiteralInteger literal)
     {
         if (literal.Type.LastOutput() is not StackyType.Integer intType)
@@ -21,16 +27,25 @@ public partial class CompilerEmitter
             throw new InvalidCastException();
         }
 
-        if (intType.Signed != true || intType.Size != SyntaxType.IntegerSize.S64)
+        return intType switch
         {
-            throw new NotImplementedException("TODO support other int sizes");
-        }
-
-        var type = _context.Handle.Int64Type;
-        var value = LLVMValueRef.CreateConstInt(type, (ulong)literal.Value, true);
-        
-        return new CompilerValue(value.AsValue(), new CompilerType.Long());
+            (false, SyntaxType.IntegerSize.S8) => new CompilerValue(LLVMValueRef.CreateConstInt(_context.Handle.Int8Type, (ulong)literal.Value, false).AsValue(), new CompilerType.Byte()),
+            
+            (true, SyntaxType.IntegerSize.S64) => new CompilerValue(LLVMValueRef.CreateConstInt(_context.Handle.Int64Type, (ulong)literal.Value, true).AsValue(), new CompilerType.Long()),
+            
+            _ => throw new NotImplementedException("TODO support other int sizes"),
+        };
     }
+    
+    public CompilerValue LiteralByte(byte literal)
+    {
+        var type = _context.Handle.Int8Type;
+        var value = LLVMValueRef.CreateConstInt(type, (ulong)literal, false);
+        
+        return new CompilerValue(value.AsValue(), new CompilerType.Byte());
+    }
+
+    
     public CompilerValue Literal(long literal)
     {
         var type = _context.Handle.Int64Type;

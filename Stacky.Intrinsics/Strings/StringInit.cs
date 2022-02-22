@@ -33,5 +33,18 @@ public class StringInit : IIntrinsic
         return state;
     }
 
-    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack) => throw new NotImplementedException();
+    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
+    {
+        var emitter = context.Emitter;
+
+        stack = stack.Pop<CompilerType.Long>(out var length, out _);
+
+        var bufferLength = emitter.Add(length, emitter.Literal(0));
+        var buffer = context.Allocator.AllocateRaw(new CompilerType.String(), bufferLength);
+
+        emitter.StoreIndex(buffer, length, emitter.LiteralByte(0));
+        stack = stack.Push(buffer);
+        
+        return stack;
+    }
 }

@@ -19,6 +19,7 @@ internal class LLVMTypeBuilder
             // functions get values from the value stack rather than through arguments/returns
             CompilerType.Function => LLVMTypeRef.CreatePointer(LLVMTypeRef.CreateFunction(_context.Handle.VoidType, Array.Empty<LLVMTypeRef>(), false), 0),
             CompilerType.Boolean => _context.Handle.Int1Type,
+            CompilerType.Byte => _context.Handle.Int8Type,
             CompilerType.Int => _context.Handle.Int32Type,
             CompilerType.Long => _context.Handle.Int64Type,
             CompilerType.String => LLVMTypeRef.CreatePointer(_context.Handle.Int8Type, 0),

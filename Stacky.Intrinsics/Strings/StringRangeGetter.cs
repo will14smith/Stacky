@@ -36,5 +36,22 @@ public class StringRangeGetter : IIntrinsic
 
     }
 
-    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack) => throw new NotImplementedException();
+    public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
+    {
+        var emitter = context.Emitter;
+
+        stack = stack.Pop<CompilerType.Long>(out var indexEnd, out _);
+        stack = stack.Pop<CompilerType.Long>(out var indexStart, out _);
+        stack = stack.Pop<CompilerType.String>(out var str, out var removeRoot);
+
+        var length = emitter.Sub(indexEnd, indexStart);
+        var bufferLength = emitter.Add(length, emitter.Literal(1));
+        var buffer = context.Allocator.AllocateRaw(new CompilerType.String(), bufferLength);
+        
+        emitter.Copy(buffer, emitter.Literal(0), str, indexStart, length);
+        emitter.StoreIndex(buffer, length, emitter.LiteralByte(0));
+        removeRoot();
+        
+        return stack.Push(buffer);
+    }
 }
