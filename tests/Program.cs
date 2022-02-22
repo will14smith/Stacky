@@ -6,24 +6,29 @@ fileOption.IsRequired = true;
 
 var forceBuild = new Option<bool>("--force-build");
 
+var filterOption = new Option<string?>("--filter");
+
 var runCommand = new Command("run") { fileOption };
 runCommand.SetHandler((FileInfo file, bool force) => Run(file, force), fileOption, forceBuild);
 
 var updateCommand = new Command("update") { fileOption };
 updateCommand.SetHandler((FileInfo file, bool force) => Update(file, force), fileOption, forceBuild);
+
 var rootCommand = new RootCommand
 {
     runCommand,
-    updateCommand
+    updateCommand,
+    
+    filterOption,
 };
 rootCommand.AddGlobalOption(forceBuild);
-rootCommand.SetHandler((bool force) => RunAll(force), forceBuild);
+rootCommand.SetHandler((string filter, bool force) => RunAll(filter, force), filterOption, forceBuild);
 rootCommand.Invoke(args);
 
-static async Task RunAll(bool force)
+static async Task RunAll(string? filter, bool force)
 {
     var runner = new Runner { SkipBuild = !force };
-    await runner.RunAllAsync();
+    await runner.RunAllAsync(filter);
 }
 static async Task Run(FileInfo file, bool force)
 {

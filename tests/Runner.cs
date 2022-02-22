@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 
@@ -14,19 +15,23 @@ public class Runner
     public bool OutputTimes { get; set; }
     public bool SkipBuild { get; set; }
     
-    public IEnumerable<string> GetAllTests() => Directory.GetFiles(".", "*.st").Select(Path.GetFullPath);
-
-    public void RunAll()
+    public IEnumerable<string> GetAllTests(string? filter)
     {
-        foreach (var file in GetAllTests())
-        {
-            Run(file);
-        }
+        return Directory.GetFiles(".", "*.st").Select(Path.GetFullPath).Where(file => IsMatch(file, filter));
     }
 
-    public async Task RunAllAsync()
+    private bool IsMatch(string file, string? filter)
     {
-        var tasks = GetAllTests().Select(RunAsync);
+        if (filter == null) return true;
+        
+        var name = Path.GetFileNameWithoutExtension(file);
+
+        return name.Contains(filter, StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task RunAllAsync(string? filter)
+    {
+        var tasks = GetAllTests(filter).Select(RunAsync);
 
         await Task.WhenAll(tasks);
     }
