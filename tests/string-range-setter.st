@@ -1,0 +1,1 @@
+main () -> () { "abcdef" "XXX" 1 !!~ print }

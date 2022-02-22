@@ -1,0 +1,1 @@
+main () -> () { "abc" 1 ! print }
