@@ -7,9 +7,9 @@ public abstract record CompilerType
     public record String : CompilerType;
 
     public record Boolean : CompilerType;
-    public record Byte : CompilerType;
-    public record Int : CompilerType;
-    public record Long : CompilerType;
+    public record Byte : CompilerType, IComparableType, INumericType;
+    public record Int : CompilerType, IComparableType, INumericType;
+    public record Long : CompilerType, IComparableType, INumericType;
 
     public record Function(IReadOnlyList<CompilerType> Inputs, IReadOnlyList<CompilerType> Outputs) : CompilerType;
 
@@ -24,3 +24,6 @@ public abstract record CompilerType
 
     public record Pointer(CompilerType Type) : CompilerType;
 }
+
+public interface IComparableType {}
+public interface INumericType {}

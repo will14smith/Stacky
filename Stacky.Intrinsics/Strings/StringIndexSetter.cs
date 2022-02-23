@@ -43,8 +43,10 @@ public class StringIndexSetter : IIntrinsic
         var emitter = context.Emitter;
         
         stack = stack.Pop<CompilerType.Long>(out var index, out _);
-        stack = stack.Pop<CompilerType.Byte>(out var chr, out _);
+        stack = stack.Pop<INumericType>(out var chrNum, out _);
         stack = stack.Pop<CompilerType.String>(out var str, out var removeRoot);
+
+        var chr = emitter.Truncate(chrNum, new CompilerType.Byte());
         
         emitter.StoreIndex(str, index, chr);
         stack = stack.Push(str);

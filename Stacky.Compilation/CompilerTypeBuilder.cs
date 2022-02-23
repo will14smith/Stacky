@@ -31,6 +31,7 @@ public class CompilerTypeBuilder
             
             StackyType.Integer(var signed, var size) => size switch
             {
+                SyntaxType.IntegerSize.S8 => signed ? throw new NotImplementedException() : new CompilerType.Byte(),
                 SyntaxType.IntegerSize.S64 => signed ? new CompilerType.Long() : throw new NotImplementedException(),
                 
                 _ => throw new NotImplementedException()

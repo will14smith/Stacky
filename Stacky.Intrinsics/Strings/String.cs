@@ -5,7 +5,7 @@ using Stacky.Parsing.Typing;
 
 namespace Stacky.Intrinsics.Strings;
 
-public class StringIntrinsic : IIntrinsic
+public class String : IIntrinsic
 {
     public string Name => "string";
 

@@ -1,21 +1,12 @@
-main () -> () { 
-    // access n-th element in string
-    "abc" 1 ! print
+main () -> () { write-file open-read 0 { over is-eof not } { over read-line drop 1 + } while swap close print }
 
-    // set n-th element in string (88 == 'X')
-    "abc" 88 1 !~ print
-
-    // create a new string with n chars 
-    5 !@
-    // 97 == 'a'
-    97 0 !~
-    "bcd" 1 !!~
-    0 4 !~
-    print
-    
-    // create a sub-string from the n-th (inclusive) to m-th (exclusive) chars 
-    "abcdef" 1 3 !! print
-
-    // join strings
-    "abc" "def" concat print
+write-file () -> str { 
+  "test" dup 
+  
+  open-write 
+  dup "line1" write-line
+  dup "line2" write-line
+  dup "line3" write-line
+  dup "line4" write-str
+  close
 }

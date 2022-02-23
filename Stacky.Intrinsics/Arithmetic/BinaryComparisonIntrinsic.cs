@@ -40,8 +40,8 @@ public abstract class BinaryComparisonIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        stack = stack.Pop<CompilerType.Long>(out var b, out _);
-        stack = stack.Pop<CompilerType.Long>(out var a, out _);
+        stack = stack.Pop<IComparableType>(out var b, out _);
+        stack = stack.Pop<IComparableType>(out var a, out _);
 
         return stack.Push(Compile(context, a, b));
     }
