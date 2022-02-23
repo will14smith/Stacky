@@ -23,7 +23,8 @@ public class StructExpressionSyntax : SyntaxBase
         
         var id = (TypedExpression.Identifier)function.Body;
         var idFunc = (StackyType.Function)id.Type;
-        idFunc.Output.Should().BeOfType<StackyType.Struct>()
+        idFunc.Output.Should().BeOfType<StackyType.Composite>()
+            .Which.Right.Should().BeOfType<StackyType.Struct>()
             .Which.Fields.Should().BeEmpty();
     }  
     
@@ -56,8 +57,8 @@ public class StructExpressionSyntax : SyntaxBase
         
         var getter = ((TypedExpression.Application)function.Body).Expressions[1];
         getter.Type.Should().BeOfType<StackyType.Function>()
-            .Which.Output.Should().BeEquivalentTo(new StackyType.Integer(true, SyntaxType.IntegerSize.S64));
-    }    
+            .Which.Output.Should().BeEquivalentTo(new StackyType.Composite(new StackyType.Void(), new StackyType.Integer(true, SyntaxType.IntegerSize.S64)));
+    }
     
     [Fact]
     public void MultipleStructs_GetOverloadedField_ShouldParseAndInfer()

@@ -8,8 +8,8 @@ public class CompilerTypeBuilder
 {
     public CompilerType.Function BuildFunction(StackyType.Function function)
     {
-        var inputs = StackyType.Iterator(function.Input).Select(Build).ToList();
-        var outputs = StackyType.Iterator(function.Output).Select(Build).ToList();
+        var inputs = StackyType.Iterator(function.Input).Where(x => x is not StackyType.Void).Select(Build).ToList();
+        var outputs = StackyType.Iterator(function.Output).Where(x => x is not StackyType.Void).Select(Build).ToList();
 
         return new CompilerType.Function(inputs, outputs);
     }

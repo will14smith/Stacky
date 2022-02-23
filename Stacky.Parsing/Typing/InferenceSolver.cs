@@ -99,6 +99,11 @@ public class InferenceSolver
     
     private static (IReadOnlyDictionary<int, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) Replace(StackyType.Variable variable, StackyType type)
     {
+        if (Occurs(variable, type))
+        {
+            throw new InvalidOccurenceInferenceException(variable, type);
+        }
+        
         if (type is StackyType.Variable typeVariable)
         {
             var mergedSorts = new StackyType.Variable(typeVariable.Id, StackySort.MakeComposite(variable.Sort, typeVariable.Sort));
@@ -114,8 +119,29 @@ public class InferenceSolver
         {
             throw new InvalidSortTypeInferenceException(variable.Sort, type);
         }
-        
+
         return (new Dictionary<int, StackyType> { { variable.Id, type } }, Array.Empty<InferenceConstraint>());
+    }
+
+    private static bool Occurs(StackyType.Variable variable, StackyType type)
+    {
+        return type switch
+        {
+            StackyType.Boolean => false,
+            StackyType.Integer => false,
+            StackyType.String => false,
+            StackyType.Void => false,
+
+            StackyType.Variable v => v == variable,
+
+            StackyType.Composite composite => Occurs(variable, composite.Left) || Occurs(variable, composite.Right),
+            StackyType.Function function => Occurs(variable, function.Input) || Occurs(variable, function.Output),
+            StackyType.Getter getter => Occurs(variable, getter.StructType),
+            StackyType.Setter setter => Occurs(variable, setter.StructType),
+            StackyType.Struct @struct => @struct.Fields.Any(field => Occurs(variable, field.Type)),
+            
+            _ => false
+        };
     }
 
     private static (IReadOnlyDictionary<int, StackyType> Substitutions, IReadOnlyList<InferenceConstraint> Constraints) SolveComposite(StackyType.Composite left, StackyType.Composite right)

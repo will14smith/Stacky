@@ -8,6 +8,18 @@ public class TypeInferenceException : Exception
     public TypeInferenceException(string message) : base(message) { }
 }
 
+public class InvalidOccurenceInferenceException : TypeInferenceException
+{
+    public StackyType.Variable Variable { get; }
+    public StackyType Target { get; }
+
+    public InvalidOccurenceInferenceException(StackyType.Variable variable, StackyType target) : base($"Unable to unify '{variable}' with '{target}' since it occurs")
+    {
+        Variable = variable;
+        Target = target;
+    }
+}
+
 public class InvalidCastTypeInferenceException : TypeInferenceException
 {
     public StackyType Left { get; }

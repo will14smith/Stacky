@@ -216,5 +216,25 @@ public class TypeInfering : SyntaxBase
         var func = () => Infer(program);
 
         func.Should().Throw<TypeInferenceException>();
+    }    
+    
+    [Fact]
+    public void AddingToStack_AgainstFunctionType_ShouldError()
+    {
+        var program = ParseProgram("test () -> () { 1 }");
+
+        var func = () => Infer(program);
+
+        func.Should().Throw<TypeInferenceException>();
+    }    
+    
+    [Fact]
+    public void RemovingFromStack_AgainstFunctionType_ShouldError()
+    {
+        var program = ParseProgram("test () -> () { 1 + }");
+
+        var func = () => Infer(program);
+
+        func.Should().Throw<TypeInferenceException>();
     }
 }

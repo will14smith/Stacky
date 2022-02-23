@@ -81,7 +81,6 @@ public abstract record StackyType
     {
         return type switch
         {
-            Void => Array.Empty<StackyType>(),
             Composite comp => Iterator(comp.Left).Concat(Iterator(comp.Right)),
             _ => new[] { type }
         };

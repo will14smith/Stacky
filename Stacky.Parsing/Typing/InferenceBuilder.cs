@@ -56,17 +56,25 @@ public class InferenceBuilder
     {
         var body = Build(ref state, function.Body);
         var type = (StackyType.Function)body.Type;
-
-        var funcType = ToType(ref state, function);
+        
+        var funcType = ToDefinitionType(state, function);
 
         state = state
             .Unify(funcType.Input, type.Input)
             .Unify(funcType.Output, type.Output);
 
-        return new TypedFunction(function, type, body);
+        return new TypedFunction(function, funcType, body);
     }
 
-    private static StackyType.Function ToType(ref InferenceState state, SyntaxFunction function)
+    private static StackyType.Function ToDefinitionType(InferenceState state, SyntaxFunction function)
+    {
+        var input = StackyType.MakeComposite(function.Input.Select(t => ToType(state, t)).Prepend(new StackyType.Void()).ToArray());
+        var output = StackyType.MakeComposite(function.Output.Select(t => ToType(state, t)).Prepend(new StackyType.Void()).ToArray());
+        
+        return new StackyType.Function(input, output);
+    }
+    
+    private static StackyType.Function ToInvokeType(ref InferenceState state, SyntaxFunction function)
     {
         state = state.NewStackVariable(out var inputStack);
 
@@ -201,7 +209,7 @@ public class InferenceBuilder
             throw new Exception($"unknown identifier: {identifier}");
         }
         
-        var functionType = ToType(ref state, function);
+        var functionType = ToInvokeType(ref state, function);
         return new TypedExpression.Identifier(identifier, functionType);
     }
 
