@@ -1,3 +1,4 @@
+using LLVMSharp;
 using LLVMSharp.Interop;
 
 namespace Stacky.Compilation.LLVM;
@@ -28,6 +29,14 @@ public partial class CompilerEmitter
         var size = type.TypeRef.SizeOf;
         // TODO is this a Long?
         return new CompilerValue(size.AsValue(), new CompilerType.Long());
+    }
+    
+    public CompilerValue StructCast(CompilerValue value, CompilerStruct type)
+    {
+        var typeRef = LLVMTypeRef.CreatePointer(type.TypeRef, 0).AsType();
+        var cast = _builder.CreateCast(Instruction.CastOps.BitCast, value.Value, typeRef, "struct");
+
+        return new CompilerValue(cast, type.Type);
     }
 
     public CompilerValue FieldPointer(CompilerValue target, string fieldName)

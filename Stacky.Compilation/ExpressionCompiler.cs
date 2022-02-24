@@ -9,9 +9,9 @@ public partial class ExpressionCompiler
     private readonly CompilerEmitter _emitter;
     private readonly CompilerEnvironment _environment;
     private readonly CompilerIntrinsicRegistry _intrinsics;
-    private readonly IReadOnlyDictionary<TypedExpression.Closure, CompilerValue> _closures;
+    private readonly IReadOnlyDictionary<TypedExpression.Closure, CompilerClosure> _closures;
 
-    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsicRegistry intrinsics, IReadOnlyDictionary<TypedExpression.Closure, CompilerValue> closures)
+    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsicRegistry intrinsics, IReadOnlyDictionary<TypedExpression.Closure, CompilerClosure> closures)
     {
         _allocator = allocator;
         _emitter = emitter;
@@ -45,14 +45,29 @@ public partial class ExpressionCompiler
         return stack.Push(value);
     }
 
-    private CompilerStack CompileClosure(CompilerStack stack, TypedExpression.Closure closure)
+    private CompilerStack CompileClosure(CompilerStack stack, TypedExpression.Closure closureExpression)
     {
-        if (closure.Bindings.Any())
+        var closureDefinition = _closures[closureExpression];
+        
+        var state = _allocator.Allocate(closureDefinition.State);
+        state = _emitter.StructInit(state);
+        
+        foreach (var stateField in closureDefinition.State.Type.Fields)
         {
-            throw new NotImplementedException();
+            if (!stack.TryGetBinding(stateField.Name, out var stateValue))
+            {
+                throw new InvalidOperationException();
+            }
+            _emitter.Store(_emitter.FieldPointer(state, stateField.Name), stateValue);
         }
         
-        return stack.Push(_closures[closure]);
+        var closure = _allocator.Allocate(closureDefinition.Closure);
+        closure = _emitter.StructInit(closure);
+        
+        _emitter.Store(_emitter.FieldPointer(closure, ClosureCompiler.FunctionField), closureDefinition.Function);
+        _emitter.Store(_emitter.FieldPointer(closure, ClosureCompiler.StateField), state);
+        
+        return stack.Push(closure);
     }
 
     private CompilerStack CompileBinding(CompilerStack stack, TypedExpression.Binding binding)

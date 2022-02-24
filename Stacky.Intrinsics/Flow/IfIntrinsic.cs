@@ -43,7 +43,7 @@ public class IfIntrinsic : IIntrinsic
     {
         var emitter = context.Emitter;
         
-        stack = stack.Pop<CompilerType.Function>(out var trueFunc, out _);
+        stack = stack.Pop(out var trueClosure, out var removeTrueClosureRoot);
         stack = stack.Pop<CompilerType.Boolean>(out var condition, out _);
 
         var mergeBlock = emitter.CreateBlockInCurrent("merge");
@@ -52,10 +52,12 @@ public class IfIntrinsic : IIntrinsic
         emitter.Branch(condition, trueBlock, mergeBlock);
         
         emitter.BeginBlock(trueBlock);
-        var trueStack = ExpressionCompiler.CallFunction(emitter, stack, trueFunc);
+        var trueStack = context.Invoke(stack, trueClosure);
         emitter.Branch(mergeBlock);
         
         emitter.BeginBlock(mergeBlock);
+
+        removeTrueClosureRoot();
         
         return trueStack;
     }

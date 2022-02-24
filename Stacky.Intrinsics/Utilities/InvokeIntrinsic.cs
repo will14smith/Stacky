@@ -34,8 +34,9 @@ public class InvokeIntrinsic : IIntrinsic
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)
     {
-        stack = stack.Pop<CompilerType.Function>(out var value, out _);
-
-        return ExpressionCompiler.CallFunction(context.Emitter, stack, value);
+        stack = stack.Pop(out var closure, out var removeClosureRoot); 
+        stack = context.Invoke(stack, closure);
+        removeClosureRoot();
+        return stack;
     }
 }

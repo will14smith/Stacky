@@ -63,8 +63,8 @@ public class WhileIntrinsic : IIntrinsic
     {
         var emitter = context.Emitter;
         
-        stack = stack.Pop<CompilerType.Function>(out var loopFunc, out _);
-        stack = stack.Pop<CompilerType.Function>(out var condFunc, out _);
+        stack = stack.Pop(out var loopClosure, out var removeLoopClosureRoot);
+        stack = stack.Pop(out var conditionClosure, out var removeConditionClosureRoot);
 
         var doneBlock = emitter.CreateBlockInCurrent("done");
         var condBlock = emitter.CreateBlockInCurrent("cond");
@@ -74,17 +74,20 @@ public class WhileIntrinsic : IIntrinsic
         
         emitter.BeginBlock(loopBlock);
         // this stack isn't needed because it won't have changed
-        _ = ExpressionCompiler.CallFunction(emitter, stack, loopFunc);
+        _ = context.Invoke(stack, loopClosure);
         emitter.Branch(condBlock);
         
         emitter.BeginBlock(condBlock);
-        var condStack = ExpressionCompiler.CallFunction(emitter, stack, condFunc);
+        var condStack = context.Invoke(stack, conditionClosure);
         // this stack isn't needed because it won't have changed
         _ = condStack.Pop<CompilerType.Boolean>(out var condition, out _);
         emitter.Branch(condition, loopBlock, doneBlock);
 
         emitter.BeginBlock(doneBlock);
 
+        removeLoopClosureRoot();
+        removeConditionClosureRoot();
+        
         return stack;
     }
 }

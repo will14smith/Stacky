@@ -51,8 +51,8 @@ public class IfElseIntrinsic : IIntrinsic
     {
         var emitter = context.Emitter;
         
-        stack = stack.Pop<CompilerType.Function>(out var falseFunc, out _);
-        stack = stack.Pop<CompilerType.Function>(out var trueFunc, out _);
+        stack = stack.Pop(out var falseClosure, out var removeFalseClosureRoot);
+        stack = stack.Pop(out var trueClosure, out var removeTrueClosureRoot);
         stack = stack.Pop<CompilerType.Boolean>(out var condition, out _);
 
         var mergeBlock = emitter.CreateBlockInCurrent("merge");
@@ -62,15 +62,18 @@ public class IfElseIntrinsic : IIntrinsic
         emitter.Branch(condition, trueBlock, falseBlock);
         
         emitter.BeginBlock(trueBlock);
-        var trueStack = ExpressionCompiler.CallFunction(emitter, stack, trueFunc);
+        var trueStack = context.Invoke(stack, trueClosure);
         emitter.Branch(mergeBlock);
         
         emitter.BeginBlock(falseBlock);
         // the stacks will have the same output so we don't need this one
-        _ = ExpressionCompiler.CallFunction(emitter, stack, falseFunc);
+        _ = context.Invoke(stack, falseClosure);
         emitter.Branch(mergeBlock);
         
         emitter.BeginBlock(mergeBlock);
+
+        removeFalseClosureRoot();
+        removeTrueClosureRoot();
         
         return trueStack;
     }

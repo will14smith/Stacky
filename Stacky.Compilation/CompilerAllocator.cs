@@ -22,7 +22,8 @@ public class CompilerAllocator
     public CompilerValue Allocate(CompilerStruct type)
     {
         // TODO allocate type & header information
-        return AllocateRaw(type.Type, _emitter.StructSize(type));
+        var value = AllocateRaw(type.Type, _emitter.StructSize(type));
+        return _emitter.StructCast(value, type);
     }
     public CompilerValue AllocateRaw(CompilerType type, long length) => AllocateRaw(type, _emitter.Literal(length));
     public CompilerValue AllocateRaw(CompilerType type, CompilerValue length) => _emitter.Call(_gcAllocateRaw.Value, type, length);

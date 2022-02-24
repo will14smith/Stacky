@@ -13,3 +13,16 @@ public class CompilerFunctionContext
         Emitter = emitter;
     }
 }
+
+public static class CompilerFunctionContextExtensions
+{
+    public static CompilerStack Invoke(this CompilerFunctionContext context, CompilerStack stack, CompilerValue closure)
+    {
+        var function = context.Emitter.Load(context.Emitter.FieldPointer(closure, ClosureCompiler.FunctionField));
+        var state = context.Emitter.Load(context.Emitter.FieldPointer(closure, ClosureCompiler.StateField));
+
+        stack = stack.Push(state);
+
+        return ExpressionCompiler.CallFunction(context.Emitter, stack, function);
+    }
+}
