@@ -24,12 +24,12 @@ public class InvokeIntrinsic : IIntrinsic
     {
         state = state.Pop(out var a);
 
-        if (a is not EvaluationValue.Function function)
+        if (a is not EvaluationValue.Closure function)
         {
             throw new InvalidCastException($"Expected arg 0 to be Function but got {a}");
         }
 
-        return evaluator.RunExpression(state, function.Body);
+        return evaluator.RunClosure(state, function);
     }
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)

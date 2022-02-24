@@ -13,7 +13,7 @@ public abstract record EvaluationValue
         public string StringValue => Encoding.UTF8.GetString(Value);
     }
 
-    public record Function(TypedExpression Body) : EvaluationValue;
+    public record Closure(TypedExpression Body, IReadOnlyDictionary<string, EvaluationValue> Bindings) : EvaluationValue;
 
     public record Struct(IReadOnlyDictionary<string, EvaluationValue?> Fields) : EvaluationValue
     {

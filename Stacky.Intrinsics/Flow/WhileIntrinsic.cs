@@ -27,20 +27,20 @@ public class WhileIntrinsic : IIntrinsic
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
     {
         state = state.Pop(out var loopBody);
-        if (loopBody is not EvaluationValue.Function loopBodyFunc)
+        if (loopBody is not EvaluationValue.Closure loopBodyFunc)
         {
             throw new InvalidCastException($"Expected arg 0 to be Function but got {loopBody}");
         }
         
         state = state.Pop(out var conditionBody);
-        if (conditionBody is not EvaluationValue.Function conditionBodyFunc)
+        if (conditionBody is not EvaluationValue.Closure conditionBodyFunc)
         {
             throw new InvalidCastException($"Expected arg 1 to be Function but got {conditionBody}");
         }
 
         while (true)
         {
-            state = evaluator.RunExpression(state, conditionBodyFunc.Body);
+            state = evaluator.RunClosure(state, conditionBodyFunc);
             
             state = state.Pop(out var condition);
             if (condition is not EvaluationValue.Boolean conditionBool)
@@ -53,7 +53,7 @@ public class WhileIntrinsic : IIntrinsic
                 break;
             }
 
-            state = evaluator.RunExpression(state, loopBodyFunc.Body);
+            state = evaluator.RunClosure(state, loopBodyFunc);
         }
 
         return state;

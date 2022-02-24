@@ -25,13 +25,13 @@ public class FunctionCompiler
 
     public void Compile()
     {
-        var anonymousFunctions = CompileAnonymousFunctions(_function.Body);
+        var closures = CompileClosures(_function.Body);
 
         var definition = _environment.GetFunction(_function.Name.Value);
-        CompileFunction(definition, _function.Body, anonymousFunctions);
+        CompileFunction(definition, _function.Body, closures);
     }
 
-    private void CompileFunction(CompilerValue definition, TypedExpression body, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionsMapping)
+    private void CompileFunction(CompilerValue definition, TypedExpression body, IReadOnlyDictionary<TypedExpression.Closure, CompilerValue> closures)
     {
         var stack = new CompilerStack(_allocator, _emitter);
         var type = (CompilerType.Function)definition.Type;
@@ -41,7 +41,7 @@ public class FunctionCompiler
             stack = stack.PushType(input);
         }
 
-        var compiler = new ExpressionCompiler(_allocator, _emitter, _environment, _intrinsics, anonymousFunctionsMapping);
+        var compiler = new ExpressionCompiler(_allocator, _emitter, _environment, _intrinsics, closures);
 
         var entry = _emitter.CreateBlock(definition, "entry");
         _emitter.BeginBlock(entry);
@@ -61,11 +61,11 @@ public class FunctionCompiler
         _emitter.VerifyFunction(definition);
     }
 
-    private IReadOnlyDictionary<TypedExpression.Function, CompilerValue> CompileAnonymousFunctions(TypedExpression expression)
+    private IReadOnlyDictionary<TypedExpression.Closure, CompilerValue> CompileClosures(TypedExpression expression)
     {
-        var mapping = new Dictionary<TypedExpression.Function, CompilerValue>();
+        var mapping = new Dictionary<TypedExpression.Closure, CompilerValue>();
 
-        var functions = ExtractAnonymousFunctions(expression);
+        var functions = ExtractClosures(expression);
 
         var i = 0;
         foreach (var function in functions)
@@ -81,17 +81,17 @@ public class FunctionCompiler
         return mapping;
     }
 
-    private static IEnumerable<TypedExpression.Function> ExtractAnonymousFunctions(TypedExpression expression)
+    private static IEnumerable<TypedExpression.Closure> ExtractClosures(TypedExpression expression)
     {
         return expression switch
         {
-            TypedExpression.LiteralInteger => Array.Empty<TypedExpression.Function>(),
-            TypedExpression.LiteralString => Array.Empty<TypedExpression.Function>(),
-            TypedExpression.Identifier => Array.Empty<TypedExpression.Function>(),
+            TypedExpression.LiteralInteger => Array.Empty<TypedExpression.Closure>(),
+            TypedExpression.LiteralString => Array.Empty<TypedExpression.Closure>(),
+            TypedExpression.Identifier => Array.Empty<TypedExpression.Closure>(),
 
-            TypedExpression.Function function => ExtractAnonymousFunctions(function.Body).Append(function),
-            TypedExpression.Application application => application.Expressions.SelectMany(ExtractAnonymousFunctions),
-            TypedExpression.Binding binding => ExtractAnonymousFunctions(binding.Body),
+            TypedExpression.Closure closure => ExtractClosures(closure.Body).Append(closure),
+            TypedExpression.Application application => application.Expressions.SelectMany(ExtractClosures),
+            TypedExpression.Binding binding => ExtractClosures(binding.Body),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
         };

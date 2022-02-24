@@ -14,7 +14,7 @@ public class AnonymousFunctionSemantics : SemanticsBase
         var stack = Run(code);
 
         stack.Should().HaveCount(1);
-        stack[0].Should().BeOfType<EvaluationValue.Function>();
+        stack[0].Should().BeOfType<EvaluationValue.Closure>();
     }
 
     [Fact]

@@ -68,6 +68,26 @@ public class InferenceState
         type = default;
         return false;
     }
+    
+    [Pure]
+    public IReadOnlyList<StackyBinding> GetBindings()
+    {
+        var seen = new HashSet<string>();
+        var bindings = new List<StackyBinding>();
+        
+        foreach (var scope in _bindings)
+        {
+            foreach (var (name, type) in scope)
+            {
+                if (seen.Add(name))
+                {
+                    bindings.Add(new StackyBinding(name, type));
+                }
+            }
+        }
+        
+        return bindings;
+    }
 
     [Pure]
     public InferenceState PushBindings(IReadOnlyDictionary<string, StackyType> newBindings) => WithBindings(_bindings.Push(newBindings));
@@ -81,5 +101,4 @@ public class InferenceState
     private InferenceState WithConstraints(ImmutableList<InferenceConstraint> constraints) => new(Program, _variables, constraints, _bindings);
     [Pure]
     private InferenceState WithBindings(ImmutableStack<IReadOnlyDictionary<string, StackyType>> bindings) => new(Program, _variables, _constraints, bindings);
-
 }

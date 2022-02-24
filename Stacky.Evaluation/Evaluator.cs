@@ -28,21 +28,48 @@ public class Evaluator
     
     private EvaluationState RunFunction(EvaluationState state, TypedFunction function) => RunExpression(state, function.Body);
 
+    public EvaluationState RunClosure(EvaluationState state, EvaluationValue.Closure closure)
+    {
+        state = state.PushBindings(closure.Bindings);
+        state = RunExpression(state, closure.Body);
+        state = state.PopBindings();
+        
+        return state;
+    }
+
+    
     public EvaluationState RunExpression(EvaluationState state, TypedExpression expr) =>
         expr switch
         {
             TypedExpression.LiteralInteger literal => state.Push(new EvaluationValue.Int64(literal.Value)),
             TypedExpression.LiteralString literal => state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes(literal.Value))),
-            TypedExpression.Function function => state.Push(new EvaluationValue.Function(function.Body)),
             
             TypedExpression.Application application => RunApplication(state, application),
-            TypedExpression.Identifier identifier => RunIdentifier(state, identifier),
             TypedExpression.Binding binding => RunBinding(state, binding),
+            TypedExpression.Closure closure => RunClosure(state, closure),
+            TypedExpression.Identifier identifier => RunIdentifier(state, identifier),
             
             _ => throw new ArgumentOutOfRangeException(nameof(expr))
         };
     
     private EvaluationState RunApplication(EvaluationState state, TypedExpression.Application application) => application.Expressions.Aggregate(state, RunExpression);
+
+    private EvaluationState RunClosure(EvaluationState state, TypedExpression.Closure closure)
+    {
+        var bindings = new Dictionary<string, EvaluationValue>();
+        
+        foreach (var (name, _) in closure.Bindings)
+        {
+            if (!state.TryLookupBinding(name, out var value))
+            {
+                throw new InvalidOperationException("failed to lookup binding for closure");
+            }
+            
+            bindings.Add(name, value!);
+        }
+        
+        return state.Push(new EvaluationValue.Closure(closure.Body, bindings));
+    }
 
     private EvaluationState RunIdentifier(EvaluationState state, TypedExpression.Identifier identifier)
     {

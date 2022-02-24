@@ -28,13 +28,15 @@ public class BindingSemantics : SemanticsBase
     }   
     
     [Fact]
-    public void BindingOneVariable_ReferencingTheVariableInAFunction_IsNotAllowed()
+    public void BindingOneVariable_ReferencingTheVariableInAFunction_ShouldCaptureInClosure()
     {
         var code = "main () -> i64 { 1 (a) { { a } } invoke }";
 
-        var run = () => Run(code);
+        var stack = Run(code);
 
-        run.Should().Throw<Exception>();
+        stack.Should().HaveCount(1);
+        stack[0].Should().BeOfType<EvaluationValue.Int64>()
+            .Which.Value.Should().Be(1);
     }   
     
     [Fact]

@@ -282,7 +282,11 @@ public class InferenceBuilder
 
         // since this is a function value, rather than a direct invokable we need to wrap it
         var type = new StackyType.Function(stack, StackyType.MakeComposite(stack, functionType));
-        return new TypedExpression.Function(function, type, expr);
+        
+        // TODO this can be filter to just the bindings used by the closure
+        var bindings = state.GetBindings();
+        
+        return new TypedExpression.Closure(function, type, bindings, expr);
     }
     
     private TypedExpression BuildBinding(ref InferenceState state, SyntaxExpression.Binding binding)

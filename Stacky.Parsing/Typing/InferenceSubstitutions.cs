@@ -51,7 +51,7 @@ public class InferenceSubstitutions
             TypedExpression.Application application => ApplyApplication(application),
             TypedExpression.Identifier identifier => new TypedExpression.Identifier(identifier.Syntax, Apply(_substitutions, identifier.Type)),
 
-            TypedExpression.Function function => new TypedExpression.Function(function.Syntax, Apply(_substitutions, function.Type), Apply(function.Body)),
+            TypedExpression.Closure closure => new TypedExpression.Closure(closure.Syntax, Apply(_substitutions, closure.Type), Apply(_substitutions, closure.Bindings), Apply(closure.Body)),
             TypedExpression.Binding binding => new TypedExpression.Binding(binding.Syntax, Apply(_substitutions, binding.Type), binding.Names.Select(Apply).Cast<TypedExpression.Identifier>().ToList(), Apply(binding.Body)),
 
             _ => throw new ArgumentOutOfRangeException(nameof(expression))
@@ -79,4 +79,7 @@ public class InferenceSubstitutions
             _ => type
         };
     }
+    
+    private static IReadOnlyList<StackyBinding> Apply(IReadOnlyDictionary<int, StackyType> substitutions, IReadOnlyList<StackyBinding> bindings) => bindings.Select(binding => Apply(substitutions, binding)).ToList();
+    private static StackyBinding Apply(IReadOnlyDictionary<int, StackyType> substitutions, StackyBinding binding) => new(binding.Name, Apply(substitutions, binding.Type));
 }

@@ -27,13 +27,13 @@ public class IfElseIntrinsic : IIntrinsic
     public EvaluationState Evaluate(Evaluator evaluator, EvaluationState state)
     {
         state = state.Pop(out var falseValue);
-        if (falseValue is not EvaluationValue.Function falseFunc)
+        if (falseValue is not EvaluationValue.Closure falseFunc)
         {
             throw new InvalidCastException($"Expected arg 0 to be Function but got {falseValue}");
         }
         
         state = state.Pop(out var trueValue);
-        if (trueValue is not EvaluationValue.Function trueFunc)
+        if (trueValue is not EvaluationValue.Closure trueFunc)
         {
             throw new InvalidCastException($"Expected arg 1 to be Function but got {trueValue}");
         }
@@ -44,7 +44,7 @@ public class IfElseIntrinsic : IIntrinsic
             throw new InvalidCastException($"Expected arg 2 to be Boolean but got {condition}");
         }
 
-        return evaluator.RunExpression(state, conditionBool.Value ? trueFunc.Body : falseFunc.Body);
+        return evaluator.RunClosure(state, conditionBool.Value ? trueFunc : falseFunc);
     }
 
     public CompilerStack Compile(CompilerFunctionContext context, CompilerStack stack)

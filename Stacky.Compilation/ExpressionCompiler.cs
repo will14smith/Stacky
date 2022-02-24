@@ -9,15 +9,15 @@ public partial class ExpressionCompiler
     private readonly CompilerEmitter _emitter;
     private readonly CompilerEnvironment _environment;
     private readonly CompilerIntrinsicRegistry _intrinsics;
-    private readonly IReadOnlyDictionary<TypedExpression.Function, CompilerValue> _anonymousFunctionMapping;
+    private readonly IReadOnlyDictionary<TypedExpression.Closure, CompilerValue> _closures;
 
-    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsicRegistry intrinsics, IReadOnlyDictionary<TypedExpression.Function, CompilerValue> anonymousFunctionMapping)
+    public ExpressionCompiler(CompilerAllocator allocator, CompilerEmitter emitter, CompilerEnvironment environment, CompilerIntrinsicRegistry intrinsics, IReadOnlyDictionary<TypedExpression.Closure, CompilerValue> closures)
     {
         _allocator = allocator;
         _emitter = emitter;
         _environment = environment;
         _intrinsics = intrinsics;
-        _anonymousFunctionMapping = anonymousFunctionMapping;
+        _closures = closures;
     }
 
     public CompilerStack Compile(CompilerStack stack, TypedExpression expression)
@@ -27,7 +27,7 @@ public partial class ExpressionCompiler
             TypedExpression.LiteralInteger literalInteger => CompileLiteral(stack, literalInteger),
             TypedExpression.LiteralString literalString => CompileLiteral(stack, literalString),
 
-            TypedExpression.Function function => CompileFunction(stack, function),
+            TypedExpression.Closure closure => CompileClosure(stack, closure),
             TypedExpression.Binding binding => CompileBinding(stack, binding),
             
             TypedExpression.Application application => CompileApplication(stack, application),
@@ -45,7 +45,15 @@ public partial class ExpressionCompiler
         return stack.Push(value);
     }
 
-    private CompilerStack CompileFunction(CompilerStack stack, TypedExpression.Function function) => stack.Push(_anonymousFunctionMapping[function]);
+    private CompilerStack CompileClosure(CompilerStack stack, TypedExpression.Closure closure)
+    {
+        if (closure.Bindings.Any())
+        {
+            throw new NotImplementedException();
+        }
+        
+        return stack.Push(_closures[closure]);
+    }
 
     private CompilerStack CompileBinding(CompilerStack stack, TypedExpression.Binding binding)
     {

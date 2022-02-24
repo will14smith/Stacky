@@ -72,17 +72,37 @@ public class TypedProgramPrinter
                 }
                 break;
             
-            case TypedExpression.Function function: 
+            case TypedExpression.Closure closure:
                 Indent(indent);
+
+                PrintProgram("[");
+
+                foreach (var (name, type) in closure.Bindings)
+                {
+                    Console.WriteLine();
+                    Indent(indent + 2);
+                    PrintProgram($"{name} ");
+                    PrintType(type);
+                }
+
+                if (closure.Bindings.Any())
+                {
+                    Console.WriteLine();
+                }
+                
+                Indent(indent);
+                PrintProgram("] ");
+                
+                
                 PrintProgram("{");
                 Console.WriteLine();
 
-                Print(function.Body, indent + 2);
+                Print(closure.Body, indent + 2);
                 
                 Indent(indent);
                 PrintProgram("} ");
 
-                if (function.Type is not StackyType.Function functionType)
+                if (closure.Type is not StackyType.Function functionType)
                 {
                     throw new InvalidOperationException();
                 }
