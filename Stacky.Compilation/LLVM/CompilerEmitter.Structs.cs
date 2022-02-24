@@ -36,12 +36,14 @@ public partial class CompilerEmitter
         var typeRef = LLVMTypeRef.CreatePointer(type.TypeRef, 0).AsType();
         var cast = _builder.CreateCast(Instruction.CastOps.BitCast, value.Value, typeRef, "struct");
 
-        return new CompilerValue(cast, type.Type);
+        return new CompilerValue(cast, new CompilerType.Pointer(type.Type));
     }
 
     public CompilerValue FieldPointer(CompilerValue target, string fieldName)
     {
-        var structType = (CompilerType.Struct) target.Type;
+        var pointerType = (CompilerType.Pointer) target.Type;
+        var structType = (CompilerType.Struct) pointerType.Type;
+
         var (field, fieldIndex) = structType.Fields.Select((x, i) => (Field: x, Index: i)).First(x => x.Field.Name == fieldName);
 
         var offset = _builder.CreateStructGEP(target.Value, (uint) fieldIndex, "field");

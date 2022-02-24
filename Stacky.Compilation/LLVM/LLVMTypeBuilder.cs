@@ -24,7 +24,8 @@ internal class LLVMTypeBuilder
             CompilerType.Long => _context.Handle.Int64Type,
             CompilerType.String => LLVMTypeRef.CreatePointer(_context.Handle.Int8Type, 0),
             
-            CompilerType.Struct def => LLVMTypeRef.CreatePointer(LLVMTypeRef.CreateStruct(def.Fields.Select(f => ToLLVM(f.Type)).ToArray(), false), 0),
+            CompilerType.Struct def => LLVMTypeRef.CreateStruct(def.Fields.Select(f => ToLLVM(f.Type)).ToArray(), false),
+            CompilerType.Pointer ptr => LLVMTypeRef.CreatePointer(ToLLVM(ptr.Type), 0),
             
             ILLVMTypeConversion conversion => conversion.ToLLVM(_context),
             

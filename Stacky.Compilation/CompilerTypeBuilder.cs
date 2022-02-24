@@ -40,7 +40,7 @@ public class CompilerTypeBuilder
             StackyType.String => new CompilerType.String(),
             
             StackyType.Function function => BuildFunction(function),
-            StackyType.Struct definition => BuildStruct(definition),
+            StackyType.Struct definition => new CompilerType.Pointer(BuildStruct(definition)),
             
             ICompilerTypeConversion conversion => conversion.ToCompilerType(),
             

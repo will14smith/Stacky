@@ -62,13 +62,10 @@ public class ClosureCompiler
         CompileFunction(function, closure, mapping);
 
         var closureStructName = $"{name}_closure";
-        
-        // closureFields.Add(new StackyType.StructField(FunctionField, closure.Type));
-
         var closureStruct = _emitter.DefineStruct(closureStructName, new CompilerType.Struct(closureStructName, new []
         {
             new CompilerType.StructField(FunctionField, type),
-            new CompilerType.StructField(StateField, stateStruct.Type)
+            new CompilerType.StructField(StateField, new CompilerType.Pointer(stateStruct.Type))
         }));
         
         return new CompilerClosure(closureStruct, stateStruct, function);
@@ -89,7 +86,7 @@ public class ClosureCompiler
         var entry = _emitter.CreateBlock(definition, "entry");
         _emitter.BeginBlock(entry);
 
-        stack = SetupBindings(stack, definition, out var removeStateRoot);
+        stack = SetupBindings(stack, out var removeStateRoot);
         stack = compiler.Compile(stack, closure.Body);
         stack = CleanupBindings(stack, removeStateRoot);
         
@@ -97,10 +94,12 @@ public class ClosureCompiler
         _emitter.VerifyFunction(definition);
     }
     
-    private CompilerStack SetupBindings(CompilerStack stack, CompilerValue function, out Action removeStateRoot)
+    private CompilerStack SetupBindings(CompilerStack stack, out Action removeStateRoot)
     {
         stack = stack.Pop(out var closureState, out removeStateRoot);
-        var closureStruct = (CompilerType.Struct) closureState.Type;
+        
+        var closurePointer = (CompilerType.Pointer) closureState.Type;
+        var closureStruct = (CompilerType.Struct) closurePointer.Type;
         
         var bindings = new Dictionary<string, CompilerValue>();
         foreach (var field in closureStruct.Fields)
