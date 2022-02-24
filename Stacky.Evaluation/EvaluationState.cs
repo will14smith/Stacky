@@ -1,18 +1,18 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics.Contracts;
-using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Evaluation;
 
 public class EvaluationState
 {
-    private readonly SyntaxProgram _program;
+    private readonly TypedProgram _program;
     public ImmutableStack<EvaluationValue> Stack { get; }
     public ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>> Bindings { get; }
 
-    public EvaluationState(SyntaxProgram program) : this(program, ImmutableStack<EvaluationValue>.Empty, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>>.Empty) { }
+    public EvaluationState(TypedProgram program) : this(program, ImmutableStack<EvaluationValue>.Empty, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>>.Empty) { }
 
-    public EvaluationState(SyntaxProgram program, ImmutableStack<EvaluationValue> stack, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>> bindings)
+    public EvaluationState(TypedProgram program, ImmutableStack<EvaluationValue> stack, ImmutableStack<IReadOnlyDictionary<string, EvaluationValue>> bindings)
     {
         _program = program;
         Stack = stack;
@@ -20,12 +20,12 @@ public class EvaluationState
     }
 
 
-    public SyntaxFunction GetFunction(string name)
+    public TypedFunction GetFunction(string name)
     {
         return _program.Functions.FirstOrDefault(x => x.Name.Value == name) ?? throw new Exception($"Function '{name}' was not declared");
     }
     
-    public SyntaxStruct GetStruct(string name)
+    public TypedStruct GetStruct(string name)
     {
         return _program.Structs.FirstOrDefault(x => x.Name.Value == name) ?? throw new Exception($"Struct '{name}' was not declared");
     }

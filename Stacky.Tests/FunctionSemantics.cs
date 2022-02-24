@@ -10,7 +10,7 @@ public class FunctionSemantics : SemanticsBase
     public void Functions_ShouldBeCalledWithTheirCallersStack()
     {
         var code = @"
-            main () -> () { 2 mul3 }
+            main () -> i64 { 2 mul3 }
             mul3 i64 -> i64 { 3 * }
         ";
 
@@ -24,7 +24,7 @@ public class FunctionSemantics : SemanticsBase
     public void Functions_ShouldBeLeaveTheirResultsOnTheStack()
     {
         var code = @"
-            main () -> () { const3 1 + }
+            main () -> i64 { const3 1 + }
             const3 () -> i64 { 3 }
         ";
 

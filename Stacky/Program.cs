@@ -30,7 +30,7 @@ evaluateCommand.SetHandler((FileInfo file, bool type) =>
         TypedProgramPrinter.Print(typedProgram);
     }
 
-    var evaluator = new Evaluator(program);
+    var evaluator = new Evaluator(typedProgram);
     All.Populate(evaluator.Intrinsics);
     evaluator.Run();
 }, fileOption, typeOption);

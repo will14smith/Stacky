@@ -1,16 +1,16 @@
 ﻿using System.Collections.Immutable;
 using System.Text;
-using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Evaluation;
 
 public class Evaluator
 {
-    private readonly SyntaxProgram _program;
+    private readonly TypedProgram _program;
     
     public EvaluationIntrinsicRegistry Intrinsics { get; } = new();
 
-    public Evaluator(SyntaxProgram program)
+    public Evaluator(TypedProgram program)
     {
         _program = program;
     }
@@ -26,25 +26,25 @@ public class Evaluator
         return state.Stack;
     }
     
-    private EvaluationState RunFunction(EvaluationState state, SyntaxFunction function) => RunExpression(state, function.Body);
+    private EvaluationState RunFunction(EvaluationState state, TypedFunction function) => RunExpression(state, function.Body);
 
-    public EvaluationState RunExpression(EvaluationState state, SyntaxExpression expr) =>
+    public EvaluationState RunExpression(EvaluationState state, TypedExpression expr) =>
         expr switch
         {
-            SyntaxExpression.LiteralInteger literal => state.Push(new EvaluationValue.Int64(literal.Value)),
-            SyntaxExpression.LiteralString literal => state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes(literal.Value))),
-            SyntaxExpression.Function function => state.Push(new EvaluationValue.Function(function.Body)),
+            TypedExpression.LiteralInteger literal => state.Push(new EvaluationValue.Int64(literal.Value)),
+            TypedExpression.LiteralString literal => state.Push(new EvaluationValue.String(Encoding.UTF8.GetBytes(literal.Value))),
+            TypedExpression.Function function => state.Push(new EvaluationValue.Function(function.Body)),
             
-            SyntaxExpression.Application application => RunApplication(state, application),
-            SyntaxExpression.Identifier identifier => RunIdentifier(state, identifier),
-            SyntaxExpression.Binding binding => RunBinding(state, binding),
+            TypedExpression.Application application => RunApplication(state, application),
+            TypedExpression.Identifier identifier => RunIdentifier(state, identifier),
+            TypedExpression.Binding binding => RunBinding(state, binding),
             
             _ => throw new ArgumentOutOfRangeException(nameof(expr))
         };
     
-    private EvaluationState RunApplication(EvaluationState state, SyntaxExpression.Application application) => application.Expressions.Aggregate(state, RunExpression);
+    private EvaluationState RunApplication(EvaluationState state, TypedExpression.Application application) => application.Expressions.Aggregate(state, RunExpression);
 
-    private EvaluationState RunIdentifier(EvaluationState state, SyntaxExpression.Identifier identifier)
+    private EvaluationState RunIdentifier(EvaluationState state, TypedExpression.Identifier identifier)
     {
         if (state.TryLookupBinding(identifier.Value, out var binding))
         {
@@ -71,7 +71,7 @@ public class Evaluator
 
     }
 
-    private EvaluationState RunBinding(EvaluationState state, SyntaxExpression.Binding binding)
+    private EvaluationState RunBinding(EvaluationState state, TypedExpression.Binding binding)
     {
         var values = new Dictionary<string, EvaluationValue>();
 
@@ -93,7 +93,7 @@ public class Evaluator
         return state;
     }
 
-    private static EvaluationState RunInit(ref EvaluationState state, SyntaxExpression.Identifier identifier)
+    private static EvaluationState RunInit(ref EvaluationState state, TypedExpression.Identifier identifier)
     {
         var structName = identifier.Value[1..];
         var structDefinition = state.GetStruct(structName); 
@@ -101,7 +101,7 @@ public class Evaluator
         return state.Push(new EvaluationValue.Struct(structDefinition));
     }
 
-    private static EvaluationState RunGetter(ref EvaluationState state, SyntaxExpression.Identifier identifier)
+    private static EvaluationState RunGetter(ref EvaluationState state, TypedExpression.Identifier identifier)
     {
         var fieldName = identifier.Value[1..];
 
@@ -117,7 +117,7 @@ public class Evaluator
         return state.Push(value);
     }
 
-    private static EvaluationState RunSetter(ref EvaluationState state, SyntaxExpression.Identifier identifier)
+    private static EvaluationState RunSetter(ref EvaluationState state, TypedExpression.Identifier identifier)
     {
         var fieldName = identifier.Value[1..];
 

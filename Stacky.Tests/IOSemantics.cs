@@ -43,7 +43,7 @@ public class IoSemantics : SemanticsBase, IDisposable
     [Fact]
     public void FilesCanBeOpenedAndClosed()
     {
-        var run = () => RunExpr($"\"{_file}\" open-read close");
+        var run = () => Run($"main () -> () {{ \"{_file}\" open-read close }}");
 
         run.Should().NotThrow();
     }
@@ -53,7 +53,7 @@ public class IoSemantics : SemanticsBase, IDisposable
     {
         File.Delete(_file);
 
-        RunExpr($"\"{_file}\" open-write close");
+        Run($"main () -> () {{ \"{_file}\" open-write close }}");
 
         File.Exists(_file).Should().BeTrue();
     }
@@ -63,7 +63,7 @@ public class IoSemantics : SemanticsBase, IDisposable
     {
         File.WriteAllText(_file, "hello world");
         
-        RunExpr($"\"{_file}\" open-write close");
+        Run($"main () -> () {{ \"{_file}\" open-write close }}");
 
         File.Exists(_file).Should().BeTrue();
         File.ReadAllText(_file).Should().BeEmpty();
@@ -75,7 +75,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello world";
         File.WriteAllText(_file, content);
         
-        RunExpr($"\"{_file}\" open-append close");
+        Run($"main () -> () {{ \"{_file}\" open-append close }}");
 
         File.Exists(_file).Should().BeTrue();
         File.ReadAllText(_file).Should().Be(content);
@@ -87,7 +87,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello world";
         File.WriteAllText(_file, content);
         
-        var values = RunExpr($"\"{_file}\" open-read dup read-u8 swap close");
+        var values = Run($"main () -> u8 {{ \"{_file}\" open-read dup read-u8 swap close }}");
 
         values.Should().HaveCount(1);
         values[0].Should().BeOfType<EvaluationValue.Int64>().Which.Value.Should().Be((byte)'h');
@@ -99,7 +99,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello world";
         File.WriteAllText(_file, content);
         
-        var values = RunExpr($"\"{_file}\" open-read dup read-str swap close");
+        var values = Run($"main () -> str {{ \"{_file}\" open-read dup read-str swap close }}");
 
         values.Should().HaveCount(1);
         values[0].Should().BeOfType<EvaluationValue.String>().Which.StringValue.Should().Be(content);
@@ -111,7 +111,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello\nworld";
         File.WriteAllText(_file, content);
         
-        var values = RunExpr($"\"{_file}\" open-read dup read-line swap close");
+        var values = Run($"main () -> str {{ \"{_file}\" open-read dup read-line swap close }}");
 
         values.Should().HaveCount(1);
         values[0].Should().BeOfType<EvaluationValue.String>().Which.StringValue.Should().Be("hello");
@@ -123,7 +123,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello\nworld\nline3\nline4!";
         File.WriteAllText(_file, content);
         
-        var values = RunExpr($"\"{_file}\" open-read 0 {{ over is-eof not }} {{ over read-line drop 1 + }} while swap close");
+        var values = Run($"main () -> i64 {{ \"{_file}\" open-read 0 {{ over is-eof not }} {{ over read-line drop 1 + }} while swap close }}");
 
         values.Should().HaveCount(1);
         values[0].Should().BeOfType<EvaluationValue.Int64>().Which.Value.Should().Be(4);
@@ -135,7 +135,7 @@ public class IoSemantics : SemanticsBase, IDisposable
     {
         var content = "h";
         
-        RunExpr($"\"{_file}\" open-write dup {(byte)content[0]} write-u8 close");
+        Run($"main () -> () {{ \"{_file}\" open-write dup {(byte)content[0]} write-u8 close }}");
 
         File.ReadAllText(_file).Should().Be(content);
     }
@@ -145,7 +145,7 @@ public class IoSemantics : SemanticsBase, IDisposable
     {
         var content = "hello world";
         
-        RunExpr($"\"{_file}\" open-write dup \"{content}\" write-str close");
+        Run($"main () -> () {{ \"{_file}\" open-write dup \"{content}\" write-str close }}");
 
         File.ReadAllText(_file).Should().Be(content);
     }
@@ -156,7 +156,7 @@ public class IoSemantics : SemanticsBase, IDisposable
         var content = "hello\nworld!";
         var lines = content.Split('\n'); 
 
-        RunExpr($"\"{_file}\" open-write dup \"{lines[0]}\" write-line dup \"{lines[1]}\" write-str close");
+        Run($"main () -> () {{ \"{_file}\" open-write dup \"{lines[0]}\" write-line dup \"{lines[1]}\" write-str close }}");
 
         File.ReadAllText(_file).Should().Be(content);
     }

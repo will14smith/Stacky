@@ -9,9 +9,9 @@ public class AnonymousFunctionSemantics : SemanticsBase
     [Fact]
     public void ShouldBePushedAsAValue()
     {
-        var code = "{ 1 }";
+        var code = "main () -> (() -> i64) { { 1 } }";
 
-        var stack = RunExpr(code);
+        var stack = Run(code);
 
         stack.Should().HaveCount(1);
         stack[0].Should().BeOfType<EvaluationValue.Function>();
@@ -20,9 +20,9 @@ public class AnonymousFunctionSemantics : SemanticsBase
     [Fact]
     public void WithInvoke_ShouldRunLikeAFunction()
     {
-        var code = "1 { 1 + } invoke";
+        var code = "main () -> i64 { 1 { 1 + } invoke }";
 
-        var stack = RunExpr(code);
+        var stack = Run(code);
 
         stack.Should().HaveCount(1);
         stack[0].Should().BeOfType<EvaluationValue.Int64>()

@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using Stacky.Parsing.Syntax;
+using Stacky.Parsing.Typing;
 
 namespace Stacky.Evaluation;
 
@@ -13,11 +13,11 @@ public abstract record EvaluationValue
         public string StringValue => Encoding.UTF8.GetString(Value);
     }
 
-    public record Function(SyntaxExpression Body) : EvaluationValue;
+    public record Function(TypedExpression Body) : EvaluationValue;
 
     public record Struct(IReadOnlyDictionary<string, EvaluationValue?> Fields) : EvaluationValue
     {
-        public Struct(SyntaxStruct structDefinition) : this(structDefinition.Fields.ToDictionary(x => x.Name.Value, x => (EvaluationValue?)null)) { }
+        public Struct(TypedStruct structDefinition) : this(structDefinition.Fields.ToDictionary(x => x.Name.Value, x => (EvaluationValue?)null)) { }
 
         public EvaluationValue Get(string name)
         {
