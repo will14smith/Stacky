@@ -33,7 +33,8 @@ public partial class CompilerEmitter
     
     public CompilerValue StructCast(CompilerValue value, CompilerStruct type)
     {
-        var typeRef = LLVMTypeRef.CreatePointer(type.TypeRef, 0).AsType();
+        var structDef = LLVMTypeRef.CreateStruct(type.TypeRef.StructElementTypes, type.TypeRef.IsPackedStruct);
+        var typeRef = LLVMTypeRef.CreatePointer(structDef, 0).AsType();
         var cast = _builder.CreateCast(Instruction.CastOps.BitCast, value.Value, typeRef, "struct");
 
         return new CompilerValue(cast, new CompilerType.Pointer(type.Type));
