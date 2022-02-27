@@ -10,6 +10,18 @@ struct gc_t
     struct root_t* root;
 };
 
+struct gc_header_t {
+    struct {
+        uint8_t marked : 1;
+        uint8_t raw    : 1;
+    };
+
+    union {
+        const struct type_t* type;
+        uint64_t size;
+    };       
+};
+
 struct gc_t* gc_new() { 
     struct gc_t* context = malloc(sizeof(struct gc_t));
     
@@ -28,21 +40,37 @@ void gc_destroy(struct gc_t* gc) {
 }
 
 void* gc_allocate(struct gc_t* gc, const struct type_t* type) {
+    uint64_t header_size = sizeof(struct gc_header_t);
     uint64_t size = type_sizeof(type);
-    void* pointer = malloc(size);
+    void* pointer = malloc(header_size + size);
+    
+    // init header    
+    struct gc_header_t* header = pointer;
+    header->marked = 0;
+    header->raw = 0;
+    header->type = type;    
 
-    // TODO add to heap tracking + add any metadata
+    // track the allocation
     heap_add(gc->heap, pointer);
-
-    return pointer;
+    
+    // return the offset to the actual data
+    return pointer + header_size;
 }
 void* gc_allocate_raw(struct gc_t* gc, uint64_t size) { 
-    void* pointer = malloc(size);
-    
-    // TODO add to heap tracking + add any metadata
+    uint64_t header_size = sizeof(struct gc_header_t);
+    void* pointer = malloc(header_size + size);
+
+    // init header    
+    struct gc_header_t* header = pointer;
+    header->marked = 0;
+    header->raw = 1;
+    header->size = size;    
+
+    // track the allocation
     heap_add(gc->heap, pointer);
     
-    return pointer; 
+    // return the offset to the actual data
+    return pointer + header_size; 
 }
 
 void gc_root_add(struct gc_t* gc, const void* ptr) {
