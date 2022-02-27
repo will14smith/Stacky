@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 struct heap_t {
-    void** ptr;
+    const void** ptr;
     int64_t capacity;
     int64_t count;
 };
@@ -23,11 +23,11 @@ void heap_destroy(struct heap_t* heap) {
     free(heap);
 }
 
-int64_t heap_count(struct heap_t* heap) { 
+int64_t heap_count(const struct heap_t* heap) { 
     return heap->count;
 }
 
-void heap_add(struct heap_t* heap, void* value) {
+void heap_add(struct heap_t* heap, const void* value) {
     if(heap->count == heap->capacity) {
         heap->capacity <<= 1;
         heap->ptr = realloc(heap->ptr, sizeof(void*) * heap->capacity);
@@ -35,7 +35,7 @@ void heap_add(struct heap_t* heap, void* value) {
     
     heap->ptr[heap->count++] = value;
 }
-void heap_remove(struct heap_t* heap, void* value) {
+void heap_remove(struct heap_t* heap, const void* value) {
     int64_t removed = 0;
     
     int64_t read_index = 0;
@@ -55,11 +55,11 @@ void heap_remove(struct heap_t* heap, void* value) {
     heap->count -= removed;
 }
 
-void heap_iterate_init(struct heap_t* heap, struct heap_iterator_t* iterator) {
+void heap_iterate_init(const struct heap_t* heap, struct heap_iterator_t* iterator) {
     iterator->heap = heap;
     iterator->index = -1;
 }
-void* heap_iterate_current(struct heap_iterator_t* iterator) {
+const void* heap_iterate_current(const struct heap_iterator_t* iterator) {
     if(iterator->index < 0 || iterator->index >= iterator->heap->count) { return 0; }
    
     return iterator->heap->ptr[iterator->index];

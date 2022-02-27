@@ -10,7 +10,7 @@ struct root_t {
 struct root_entry_t {
     struct root_entry_t* next;
     
-    void* key;
+    const void* key;
     int64_t value;
 };
 
@@ -32,7 +32,7 @@ static unsigned char const crc8_table[] = {
     0xae, 0xa9, 0xa0, 0xa7, 0xb2, 0xb5, 0xbc, 0xbb, 0x96, 0x91, 0x98, 0x9f, 0x8a, 0x8d, 0x84, 0x83,
     0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3};
 
-uint8_t hash_key(void* ptr) {
+uint8_t hash_key(const void* ptr) {
     uint64_t key = (uint64_t) ptr;
 
     uint8_t crc = 0x00;
@@ -68,7 +68,7 @@ void root_destroy(struct root_t* root) {
     free(root);
 }
 
-void root_add(struct root_t* root, void* key) {
+void root_add(struct root_t* root, const void* key) {
     uint8_t bucket_index = hash_key(key);
     struct root_entry_t* entry = root->buckets[bucket_index];
         
@@ -88,7 +88,7 @@ void root_add(struct root_t* root, void* key) {
     
     root->buckets[bucket_index] = entry;
 }
-void root_remove(struct root_t* root, void* key) {
+void root_remove(struct root_t* root, const void* key) {
     uint8_t bucket_index = hash_key(key);
     
     struct root_entry_t* previousEntry = NULL;
@@ -117,12 +117,12 @@ void root_remove(struct root_t* root, void* key) {
     free(entry);
 }
 
-void root_iterate_init(struct root_t* root, struct root_iterator_t* iterator) {
+void root_iterate_init(const struct root_t* root, struct root_iterator_t* iterator) {
     iterator->root = root;
     iterator->index = -1;
     iterator->entry = NULL;
 }
-void* root_iterate_current(struct root_iterator_t* iterator) {
+const void* root_iterate_current(const struct root_iterator_t* iterator) {
     if(iterator->entry == NULL) { return 0; }
     
     return iterator->entry->key;

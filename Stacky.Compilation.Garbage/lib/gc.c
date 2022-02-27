@@ -2,7 +2,6 @@
 #include "heap.h"
 #include "root.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 
 struct gc_t
@@ -28,7 +27,7 @@ void gc_destroy(struct gc_t* gc) {
     free(gc);
 }
 
-void* gc_allocate(struct gc_t* gc, struct type_t* type) {
+void* gc_allocate(struct gc_t* gc, const struct type_t* type) {
     // TODO calculate type size
     uint64_t size = 1; 
     void* pointer = malloc(size);
@@ -47,9 +46,9 @@ void* gc_allocate_raw(struct gc_t* gc, uint64_t size) {
     return pointer; 
 }
 
-void gc_root_add(struct gc_t* gc, void* ptr) {
+void gc_root_add(struct gc_t* gc, const void* ptr) {
     root_add(gc->root, ptr);
 }
-void gc_root_remove(struct gc_t* gc, void* ptr) { 
+void gc_root_remove(struct gc_t* gc, const void* ptr) { 
     root_remove(gc->root, ptr);
 }
