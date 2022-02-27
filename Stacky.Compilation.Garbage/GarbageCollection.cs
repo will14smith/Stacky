@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using Stacky.Compilation.Garbage.Types;
 
 namespace Stacky.Compilation.Garbage;
 
@@ -14,7 +15,6 @@ internal class GarbageCollectionInterop
     internal static extern IntPtr Allocate(IntPtr context, ref AllocationType type);
     [DllImport("gc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "gc_allocate_raw", ExactSpelling = true)]
     internal static extern IntPtr AllocateRaw(IntPtr context, ulong size);
-
     
     [DllImport("gc", CallingConvention = CallingConvention.Cdecl, EntryPoint = "gc_root_add", ExactSpelling = true)]
     internal static extern void RootAdd(IntPtr context, IntPtr pointer);

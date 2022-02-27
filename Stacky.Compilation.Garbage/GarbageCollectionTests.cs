@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using Stacky.Compilation.Garbage.Types;
+using Xunit;
 
 namespace Stacky.Compilation.Garbage;
 
@@ -22,24 +23,16 @@ public class GarbageCollectionTests
     [Fact]
     public void CanAllocate()
     {
-        var type1 = new AllocationType
+        var i64 = AllocationType.Primitive("i64", 8);
+        var type1 = AllocationType.Reference("myStruct", new[]
         {
-            Name = "myStruct",
-            Fields = new AllocationField[]
-            {
-                new() { Name = "field1", Kind = AllocationKind.Primitive },
-            }
-        };
-        
-        var type2 = new AllocationType
+            AllocationTypeField.New("field1", i64)
+        });
+        var type2 = AllocationType.Reference("myCoolStruct", new[]
         {
-            Name = "myCoolStruct",
-            Fields = new AllocationField[]
-            {
-                new() { Name = "field1", Kind = AllocationKind.Primitive },
-                new() { Name = "field2", Kind = AllocationKind.Reference, Type = type1 },
-            }
-        };
+            AllocationTypeField.New("field1", i64),
+            AllocationTypeField.New("field2", type1),
+        });
         
         var context = GarbageCollection.New();
         _ = context.Allocate(type2);

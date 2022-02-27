@@ -1,29 +1,9 @@
 #pragma once
 
+#include "types.h"
 #include <stdint.h>
 
 struct gc_t;
-struct field_t;
-
-enum kind_t
-{
-    TK_PRIMITIVE = 0,
-    TK_REFERENCE = 1,
-};
-
-struct type_t
-{
-    const char* name;
-    int num_fields;
-    const struct field_t** fields;
-};
-
-struct field_t
-{
-    const char* name;
-    enum kind_t kind;
-    const struct type_t* type; 
-};
 
 struct gc_t* gc_new();
 void gc_destroy(struct gc_t* gc);

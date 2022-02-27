@@ -28,8 +28,7 @@ void gc_destroy(struct gc_t* gc) {
 }
 
 void* gc_allocate(struct gc_t* gc, const struct type_t* type) {
-    // TODO calculate type size
-    uint64_t size = 1; 
+    uint64_t size = type_sizeof(type);
     void* pointer = malloc(size);
 
     // TODO add to heap tracking + add any metadata
