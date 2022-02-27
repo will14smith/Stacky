@@ -2,7 +2,7 @@
 
 namespace Stacky.Compilation.Garbage;
 
-public class Tests
+public class GarbageCollectionTests
 {
     [Fact]
     public void CanCreateAndDestroyContext()
