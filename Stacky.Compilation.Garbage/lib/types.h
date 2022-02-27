@@ -37,5 +37,7 @@ extern const struct type_t native_bool;
 extern const struct type_t native_u8;
 extern const struct type_t native_i64;
 
+// the size of a field of that type 
+uint64_t type_field_sizeof(const struct type_field_t* field);
 // just the size of the data, any metadata/headers are separate
 uint64_t type_sizeof(const struct type_t* type);

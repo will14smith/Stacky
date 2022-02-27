@@ -1,61 +1,122 @@
-﻿using Stacky.Compilation.Garbage.Types;
+﻿using System.Runtime.InteropServices;
+using FluentAssertions;
+using Stacky.Compilation.Garbage.Types;
 using Xunit;
 
 namespace Stacky.Compilation.Garbage;
 
-public class GarbageCollectionTests
+public class GarbageCollectionTests : IDisposable
 {
-    [Fact]
-    public void CanCreateAndDestroyContext()
+    private readonly AllocationType _i64;
+    private readonly AllocationType _type1;
+    private readonly AllocationType _type2;
+
+    private readonly GarbageCollectionRef _context;
+
+    public GarbageCollectionTests()
     {
-        var context = GarbageCollection.New();
-        context.Destroy();
-    } 
+        _i64 = AllocationType.Primitive("i64", 8);
+        
+        _type1 = AllocationType.Reference("myStruct", new[]
+        {
+            AllocationTypeField.New("field1", _i64)
+        });
+        
+        _type2 = AllocationType.Reference("myCoolStruct", new[]
+        {
+            AllocationTypeField.New("field1", _i64),
+            AllocationTypeField.New("field2", _type1),
+            AllocationTypeField.New("field3", _type1),
+        });
+
+        _context = GarbageCollection.New();
+    }
+
+    public void Dispose()
+    {
+        _context.Destroy();
+    }
     
     [Fact]
     public void CanAllocateRaw()
     {
-        var context = GarbageCollection.New();
-        _ = context.AllocateRaw(100);
-        context.Destroy();
+        _ = _context.AllocateRaw(100);
     }    
     
     [Fact]
     public void CanAllocate()
     {
-        var i64 = AllocationType.Primitive("i64", 8);
-        var type1 = AllocationType.Reference("myStruct", new[]
-        {
-            AllocationTypeField.New("field1", i64)
-        });
-        var type2 = AllocationType.Reference("myCoolStruct", new[]
-        {
-            AllocationTypeField.New("field1", i64),
-            AllocationTypeField.New("field2", type1),
-        });
-        
-        var context = GarbageCollection.New();
-        _ = context.Allocate(type2);
-        context.Destroy();
+        _ = _context.Allocate(_type2);
     }
     
     [Fact]
     public void CanRootAdd()
     {
-        var context = GarbageCollection.New();
-        var data = context.AllocateRaw(100);
-        context.RootAdd(data);
-        context.Destroy();
+        var data = _context.AllocateRaw(100);
+        
+        _context.RootAdd(data);
     }    
 
     [Fact]
     public void CanRootRemove()
     {
-        var context = GarbageCollection.New();
-        var data = context.AllocateRaw(100);
-        context.RootAdd(data);
-        context.RootRemove(data);
-        context.Destroy();
+        var data = _context.AllocateRaw(100);
+        _context.RootAdd(data);
+        
+        _context.RootRemove(data);
     }    
 
+    
+    [Fact]
+    public void CanCollect()
+    {
+        WriteExampleData();
+
+        var statsBefore = _context.Stats();
+        _context.Collect();
+        var statsAfter = _context.Stats();
+
+        statsBefore.Should().Be(new GarbageCollectionStats
+        {
+            AllocatedItems = 4,
+            AllocatedItemsSize = 8*2 + 24*2,
+            RootedItems = 1,
+            ReachableItems = 2
+        });
+        statsAfter.Should().Be(new GarbageCollectionStats
+        {
+            AllocatedItems = 2,
+            AllocatedItemsSize = 8 + 24,
+            RootedItems = 1,
+            ReachableItems = 2
+        });
+    }
+    
+    [Fact]
+    public void CanGetStats()
+    {
+        WriteExampleData();
+
+        var stats = _context.Stats();
+
+        stats.Should().Be(new GarbageCollectionStats
+        {
+            AllocatedItems = 4,
+            AllocatedItemsSize = 8*2 + 24*2,
+            RootedItems = 1,
+            ReachableItems = 2
+        });
+    }
+    
+    private void WriteExampleData()
+    {
+        // root = [obj1], obj1 -> obj2, obj3 & obj4 are collectable
+        
+        var data1 = _context.Allocate(_type2);
+        _context.RootAdd(data1);
+        var data2 = _context.Allocate(_type1);
+        Marshal.WriteIntPtr(data1.Pointer + 8, data2.Pointer);
+        _ = _context.Allocate(_type1);
+        _ = _context.Allocate(_type2);
+    }
 }
