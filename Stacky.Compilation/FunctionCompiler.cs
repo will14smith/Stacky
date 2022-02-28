@@ -49,11 +49,17 @@ public class FunctionCompiler
         
         var entry = _emitter.CreateBlock(definition, "entry");
         _emitter.BeginBlock(entry);
+
+        if (_function.Name.Value == "main" && ReferenceEquals(body, _function.Body))
+        {
+            _emitter.GC.Init();
+        }
         
         stack = compiler.Compile(stack, body);
 
         if (_function.Name.Value == "main" && ReferenceEquals(body, _function.Body))
         {
+            _emitter.GC.Destroy();
             // TODO remove downcast...
             _emitter.Ret(_emitter.Truncate(_emitter.Literal(0), new CompilerType.Int()));
         }

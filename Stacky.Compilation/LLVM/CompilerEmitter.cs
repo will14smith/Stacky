@@ -11,7 +11,9 @@ public partial class CompilerEmitter
     private readonly IRBuilder _builder;
 
     private readonly LLVMTypeBuilder _types;
-    
+
+    public GarbageCollectedAllocator GC { get; }
+
     public NativeFunctions NativeFunctions { get; }
     public CompilerDebug Debug { get; }
     
@@ -27,6 +29,8 @@ public partial class CompilerEmitter
         Debug = new CompilerDebug(_context, _module, _builder);
         
         _stackPointer = CreateStack();
+
+        GC = new GarbageCollectedAllocator(_context, _module, _builder);
     }
 
     public CompilerValue Load(CompilerValue source)
