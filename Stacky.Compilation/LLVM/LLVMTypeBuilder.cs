@@ -32,9 +32,30 @@ internal class LLVMTypeBuilder
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }
+
+    public bool IsCompatible(CompilerType compilerType, LLVMTypeRef llvmType)
+    {
+        return compilerType switch
+        {
+            CompilerType.Boolean => llvmType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && llvmType.IntWidth == 1,
+            CompilerType.Byte => llvmType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && llvmType.IntWidth == 8,
+            CompilerType.Int => llvmType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && llvmType.IntWidth == 32,
+            CompilerType.Long => llvmType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && llvmType.IntWidth == 64,
+            CompilerType.String => llvmType.Kind == LLVMTypeKind.LLVMPointerTypeKind && llvmType.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && llvmType.ElementType.IntWidth == 8,
+            
+            CompilerType.Pointer ptr => llvmType.Kind == LLVMTypeKind.LLVMPointerTypeKind && IsCompatible(ptr.Type, llvmType.ElementType),
+            // TODO check structure is compatible
+            CompilerType.Struct => llvmType.Kind == LLVMTypeKind.LLVMStructTypeKind,
+            
+            ILLVMTypeConversion conversion => conversion.IsCompatible(llvmType),
+
+            _ => throw new ArgumentOutOfRangeException(nameof(compilerType))
+        };
+    }
 }
 
 public interface ILLVMTypeConversion
 {
     LLVMTypeRef ToLLVM(LLVMContext context);
+    bool IsCompatible(LLVMTypeRef llvmType);
 }

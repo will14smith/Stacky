@@ -16,8 +16,7 @@ public record FileInferenceType : StackyType, ICompilerTypeConversion
 
 public record FileCompilerType : CompilerType, ILLVMTypeConversion
 {
-    public LLVMTypeRef ToLLVM(LLVMContext context)
-    {
-        return LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
-    }
+    public LLVMTypeRef ToLLVM(LLVMContext context) => LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
+
+    public bool IsCompatible(LLVMTypeRef llvmType) => llvmType.Kind == LLVMTypeKind.LLVMPointerTypeKind && llvmType.ElementType.Kind == LLVMTypeKind.LLVMIntegerTypeKind && llvmType.ElementType.IntWidth == 8;
 }

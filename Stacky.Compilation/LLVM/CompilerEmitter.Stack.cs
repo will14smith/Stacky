@@ -25,10 +25,15 @@ public partial class CompilerEmitter
         var llvmValue = value.Value;
         var llvmType = llvmValue.Handle.TypeOf;
 
+        if (!_types.IsCompatible(value.Type, llvmType))
+        {
+            throw new InvalidOperationException($"Pushing value to stack with incorrect type: compiler type = {value.Type}, compiled type = {llvmType}");
+        }
+        
         var stack = _builder.CreateLoad(_stackPointer, "sp");
         var stackTyped = _builder.CreatePointerCast(stack, LLVMTypeRef.CreatePointer(llvmType, 0).AsType(), "spTyped");
         _builder.CreateStore(llvmValue, stackTyped);
-
+        
         var newStack = _builder.CreateGEP(stack, new[] { llvmType.SizeOf.AsValue() }.AsSpan(), "sp");
         _builder.CreateStore(newStack, _stackPointer);
     }

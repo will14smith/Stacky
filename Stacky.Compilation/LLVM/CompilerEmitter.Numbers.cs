@@ -1,27 +1,26 @@
 using LLVMSharp;
+using LLVMSharp.Interop;
 
 namespace Stacky.Compilation.LLVM;
 
 public partial class CompilerEmitter
 {
-    // TODO handle different types (i.e. not only i64)
+    public CompilerValue Add(CompilerValue a, CompilerValue b) => GetNumericResult(_builder.CreateAdd(a.Value, b.Value, "result"));
+    public CompilerValue Sub(CompilerValue a, CompilerValue b) => GetNumericResult(_builder.CreateSub(a.Value, b.Value, "result"));
+    public CompilerValue Mul(CompilerValue a, CompilerValue b) => GetNumericResult(_builder.CreateMul(a.Value, b.Value, "result"));
 
-    public CompilerValue Add(CompilerValue a, CompilerValue b)
+    private CompilerValue GetNumericResult(Value value)
     {
-        var value = _builder.CreateAdd(a.Value, b.Value, "result");
-        return new CompilerValue(value, new CompilerType.Long());
-    }
-    
-    public CompilerValue Sub(CompilerValue a, CompilerValue b)
-    {
-        var value = _builder.CreateSub(a.Value, b.Value, "result");
-        return new CompilerValue(value, new CompilerType.Long());
-    }
-
-    public CompilerValue Mul(CompilerValue a, CompilerValue b)
-    {
-        var value = _builder.CreateMul(a.Value, b.Value, "result");
-        return new CompilerValue(value, new CompilerType.Long());
+        var type = value.Handle.TypeOf switch
+        {
+            { Kind: LLVMTypeKind.LLVMIntegerTypeKind, IntWidth: 8 } => (CompilerType) new CompilerType.Byte(),
+            { Kind: LLVMTypeKind.LLVMIntegerTypeKind, IntWidth: 32 } => new CompilerType.Int(),
+            { Kind: LLVMTypeKind.LLVMIntegerTypeKind, IntWidth: 64 } => new CompilerType.Long(),
+            
+            _ => throw new ArgumentOutOfRangeException(nameof(value)),
+        };
+        
+        return new CompilerValue(value, type);
     }
     
     public CompilerValue Greater(CompilerValue a, CompilerValue b)

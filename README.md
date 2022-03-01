@@ -7,7 +7,6 @@ TODO List:
 - [ ] Stacky self interpreter
 - [ ] Optimising compiler - removing stack operations when not needed
 - [ ] Optimising compiler - remove un-needed closures & closure bindings
-- [ ] Handle other integer types (currently only `i64` works)
 - [ ] Type inference - errors should link to syntax
 - [ ] Type inference - better structs using `HasField "a" t f` type class style stuff
 
