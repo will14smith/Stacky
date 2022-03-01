@@ -980,5 +980,13 @@ namespace LLVMSharp.Interop
         public void ViewFunctionCFG() => LLVM.ViewFunctionCFG(this);
 
         public void ViewFunctionCFGOnly() => LLVM.ViewFunctionCFGOnly(this);
+        
+        // Custom stuff
+        public LLVMMetadataRef GetSubprogram() => LLVM.GetSubprogram(this);
+        public void SetSubprogram(LLVMMetadataRef metadataRef) => LLVM.SetSubprogram(this, metadataRef);
+        
+        public LLVMMetadataRef GetInstrDebugLoc() => LLVM.InstructionGetDebugLoc(this);
+        public void SetInstrDebugLoc(LLVMMetadataRef metadataRef) => LLVM.InstructionSetDebugLoc(this, metadataRef);
+
     }
 }

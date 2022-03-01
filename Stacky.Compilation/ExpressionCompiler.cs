@@ -22,6 +22,8 @@ public partial class ExpressionCompiler
 
     public CompilerStack Compile(CompilerStack stack, TypedExpression expression)
     {
+        _emitter.Debug.EmitLocation(expression.Syntax);
+        
         return expression switch
         {
             TypedExpression.LiteralInteger literalInteger => CompileLiteral(stack, literalInteger),

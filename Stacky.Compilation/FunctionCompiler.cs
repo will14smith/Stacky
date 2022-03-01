@@ -29,6 +29,9 @@ public class FunctionCompiler
         var closures = _closures.Compile();
 
         var definition = _environment.GetFunction(_function.Name.Value);
+        
+        _emitter.Debug.SetFunctionLocation(definition, new DebugLocation(_function.Syntax.Position));
+
         CompileFunction(definition, _function.Body, closures);
     }
 
@@ -43,7 +46,7 @@ public class FunctionCompiler
         }
 
         var compiler = new ExpressionCompiler(_allocator, _emitter, _environment, _intrinsics, closures);
-
+        
         var entry = _emitter.CreateBlock(definition, "entry");
         _emitter.BeginBlock(entry);
         

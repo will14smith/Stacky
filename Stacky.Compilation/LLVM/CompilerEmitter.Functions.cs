@@ -36,7 +36,7 @@ public partial class CompilerEmitter
         var functionType = LLVMTypeRef.CreateFunction(_context.Handle.VoidType, Array.Empty<LLVMTypeRef>());
         var functionRef = _module.AddFunction(name, functionType);
         functionRef.Linkage = LLVMLinkage.LLVMExternalLinkage;
-
+        
         return new CompilerValue(functionRef.AsValue(), type);
     }
 

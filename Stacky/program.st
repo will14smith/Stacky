@@ -1,1 +1,8 @@
-main () -> () { 1 (a) { { a } } invoke print }
+main () -> () {
+    1
+    2
+    3
+    +
+    +
+    print
+}

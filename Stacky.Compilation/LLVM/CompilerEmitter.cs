@@ -13,18 +13,19 @@ public partial class CompilerEmitter
     private readonly LLVMTypeBuilder _types;
     
     public NativeFunctions NativeFunctions { get; }
+    public CompilerDebug Debug { get; }
     
     public CompilerEmitter()
     {
         _context = new LLVMContext();
-        
         _module = _context.Handle.CreateModuleWithName("program");
-
         _builder = new IRBuilder(_context);
         
         _types = new LLVMTypeBuilder(_context);
         NativeFunctions = new NativeFunctions(_context);
 
+        Debug = new CompilerDebug(_context, _module, _builder);
+        
         _stackPointer = CreateStack();
     }
 

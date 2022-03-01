@@ -10,6 +10,8 @@ public partial class CompilerEmitter
     
     private void InitOutput()
     {
+        Debug.InitOutput();
+
         L.InitializeX86TargetInfo();
         L.InitializeX86Target();
         L.InitializeX86TargetMC();

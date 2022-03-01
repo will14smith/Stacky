@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation and Contributors. All Rights Reserved. Licensed under the MIT License (MIT). See License.md in the repository root for more information.
 
 using System;
+using System.Buffers;
 
 namespace LLVMSharp.Interop
 {
@@ -120,5 +121,16 @@ namespace LLVMSharp.Interop
         public override int GetHashCode() => Handle.GetHashCode();
 
         public override string ToString() => $"{nameof(LLVMDIBuilderRef)}: {Handle:X}";
+
+        
+        // Custom
+        public LLVMMetadataRef CreateBasicType(string name, ulong sizeInBits, uint encoding, LLVMDIFlags flags = LLVMDIFlags.LLVMDIFlagZero) => CreateBasicType(name.AsSpan(), sizeInBits, encoding, flags);
+        public LLVMMetadataRef CreateBasicType(ReadOnlySpan<char> name, ulong sizeInBits, uint encoding, LLVMDIFlags flags = LLVMDIFlags.LLVMDIFlagZero)
+        {
+            using var marshaledName = new MarshaledString(name);
+            var nameLength = (uint)marshaledName.Length;
+
+            return LLVM.DIBuilderCreateBasicType(this, marshaledName, (UIntPtr)nameLength, sizeInBits, encoding, flags);
+        }
     }
 }

@@ -753,5 +753,8 @@ namespace LLVMSharp.Interop
         }
 
         public override string ToString() => $"{nameof(LLVMBuilderRef)}: {Handle:X}";
+        
+        // custom
+        public void SetCurrentDebugLocation(LLVMMetadataRef location) => LLVM.SetCurrentDebugLocation2(this, location);
     }
 }
