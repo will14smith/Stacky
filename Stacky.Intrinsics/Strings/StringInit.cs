@@ -39,7 +39,7 @@ public class StringInit : IIntrinsic
 
         stack = stack.Pop<CompilerType.Long>(out var length, out _);
 
-        var bufferLength = emitter.Add(length, emitter.Literal(0));
+        var bufferLength = emitter.Add(length, emitter.Literal(1));
         var buffer = context.Allocator.AllocateRaw(new CompilerType.String(), bufferLength);
 
         emitter.StoreIndex(buffer, length, emitter.LiteralByte(0));

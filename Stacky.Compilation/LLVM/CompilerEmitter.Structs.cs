@@ -10,7 +10,7 @@ public partial class CompilerEmitter
         var typeRef = _context.Handle.CreateNamedStruct(name);
         
         var fieldTypes = type.Fields.Select(f => _types.ToLLVM(f.Type)).ToArray();
-        typeRef.StructSetBody(fieldTypes, false);
+        typeRef.StructSetBody(fieldTypes, true);
         
         return new CompilerStruct(typeRef, type);
     }
@@ -19,27 +19,11 @@ public partial class CompilerEmitter
     {
         var zero = LLVMValueRef.CreateConstInt(_context.Handle.Int8Type, 0, false);
 
-        _builder.CreateMemSet(target.Value, zero.AsValue(), target.Value.Handle.TypeOf.SizeOf.AsValue(), 0);
+        _builder.CreateMemSet(target.Value, zero.AsValue(), target.Value.Handle.TypeOf.ElementType.SizeOf.AsValue(), 0);
         
         return target;
     }
-
-    public CompilerValue StructSize(CompilerStruct type)
-    {
-        var size = type.TypeRef.SizeOf;
-        // TODO is this a Long?
-        return new CompilerValue(size.AsValue(), new CompilerType.Long());
-    }
     
-    public CompilerValue StructCast(CompilerValue value, CompilerStruct type)
-    {
-        var structDef = LLVMTypeRef.CreateStruct(type.TypeRef.StructElementTypes, type.TypeRef.IsPackedStruct);
-        var typeRef = LLVMTypeRef.CreatePointer(structDef, 0).AsType();
-        var cast = _builder.CreateCast(Instruction.CastOps.BitCast, value.Value, typeRef, "struct");
-
-        return new CompilerValue(cast, new CompilerType.Pointer(type.Type));
-    }
-
     public CompilerValue FieldPointer(CompilerValue target, string fieldName)
     {
         var pointerType = (CompilerType.Pointer) target.Type;
