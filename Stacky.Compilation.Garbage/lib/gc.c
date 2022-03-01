@@ -88,6 +88,10 @@ void gc_mark_entry(struct gc_header_t* entry) {
         
     entry->marked = 1;
         
+    if(entry->raw) {
+        return;
+    }
+        
     const struct type_t* type = entry->type;
     if(type->kind == TK_PRIMITIVE) {
         return;

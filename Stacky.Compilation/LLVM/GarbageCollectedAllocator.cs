@@ -5,9 +5,10 @@ namespace Stacky.Compilation.LLVM;
 
 public class GarbageCollectedAllocator
 {
-    private readonly LLVMContext _context;
-    private readonly LLVMModuleRef _module;
+    private LLVMModuleRef _module;
     private readonly IRBuilder _builder;
+    private readonly CompilerEmitter _emitter;
+    
     private readonly GarbageCollectedTypes _types;
     
     private readonly Value _gcRef;
@@ -18,30 +19,40 @@ public class GarbageCollectedAllocator
     private readonly Value _gcAllocateRawFn;
     private readonly Value _gcRootAddFn;
     private readonly Value _gcRootRemoveFn;
+    private readonly Value _gcCollectFn;
+    private readonly Value _gcStatsFn;
     
-    public GarbageCollectedAllocator(LLVMContext context, LLVMModuleRef module, IRBuilder builder)
+    public GarbageCollectedAllocator(LLVMContext context, LLVMModuleRef module, IRBuilder builder, CompilerEmitter emitter)
     {
-        _context = context;
         _module = module;
         _builder = builder;
-        
+        _emitter = emitter;
+
         _types = new GarbageCollectedTypes(context, module, builder);
 
-        var gcType = LLVMTypeRef.CreatePointer(_context.Handle.VoidType, 0);
+        var gcType = LLVMTypeRef.CreatePointer(context.Handle.VoidType, 0);
         var gc = _module.AddGlobal(gcType, "gc");
         gc.Initializer = LLVMValueRef.CreateConstPointerNull(gcType);
         _gcRef = gc.AsValue();
 
+        var statsType = LLVMTypeRef.CreateStruct(new[]
+        {
+            LLVMTypeRef.Int64,
+            LLVMTypeRef.Int64,
+            LLVMTypeRef.Int64,
+            LLVMTypeRef.Int64,
+        }, false);
         
-        var dataPointerType = LLVMTypeRef.CreatePointer(_context.Handle.Int8Type, 0);
-        // TODO...
+        var dataPointerType = LLVMTypeRef.CreatePointer(context.Handle.Int8Type, 0);
         
         _gcNewFn = DefineExternFn("gc_new", gcType, Array.Empty<LLVMTypeRef>());
-        _gcDestroyFn = DefineExternFn("gc_destroy", _context.Handle.VoidType, new [] { gcType });
+        _gcDestroyFn = DefineExternFn("gc_destroy", context.Handle.VoidType, new [] { gcType });
         _gcAllocateFn = DefineExternFn("gc_allocate", dataPointerType, new [] { gcType, LLVMTypeRef.CreatePointer(_types.TypeDefType, 0) });
-        _gcAllocateRawFn = DefineExternFn("gc_allocate_raw", dataPointerType, new [] { gcType, _context.Handle.Int64Type });
-        _gcRootAddFn = DefineExternFn("gc_root_add", _context.Handle.VoidType, new [] { gcType, dataPointerType });
-        _gcRootRemoveFn = DefineExternFn("gc_root_remove", _context.Handle.VoidType, new [] { gcType, dataPointerType });
+        _gcAllocateRawFn = DefineExternFn("gc_allocate_raw", dataPointerType, new [] { gcType, context.Handle.Int64Type });
+        _gcRootAddFn = DefineExternFn("gc_root_add", context.Handle.VoidType, new [] { gcType, dataPointerType });
+        _gcRootRemoveFn = DefineExternFn("gc_root_remove", context.Handle.VoidType, new [] { gcType, dataPointerType });
+        _gcCollectFn = DefineExternFn("gc_collect", context.Handle.VoidType, new [] { gcType });
+        _gcStatsFn = DefineExternFn("gc_stats", statsType, new [] { gcType });
     }
 
     private Value DefineExternFn(string name, LLVMTypeRef returnType, LLVMTypeRef[] parameterTypes)
@@ -88,5 +99,32 @@ public class GarbageCollectedAllocator
     {
         var gc = _builder.CreateLoad(_gcRef);
         _builder.CreateCall(_gcRootRemoveFn, new[] { gc, value.Value });
+    }
+
+    private Value? _statsFormat;
+    
+    public void Collect()
+    {
+        var gc = _builder.CreateLoad(_gcRef);
+        _builder.CreateCall(_gcCollectFn, new Value[] { gc });
+    }    
+    
+    public void PrintStats()
+    {
+        var gc = _builder.CreateLoad(_gcRef);
+        var stats = _builder.CreateCall(_gcStatsFn, new Value[] { gc }, "stats");
+
+        var alloca = _builder.CreateAlloca(stats.Handle.TypeOf.AsType());
+        _builder.CreateStore(stats, alloca);
+        
+        var allocatedItems = _builder.CreateLoad(_builder.CreateStructGEP(alloca, 0, "allocated_items"));
+        var allocatedItemSize = _builder.CreateLoad(_builder.CreateStructGEP(alloca, 1, "allocated_items_size"));
+        var rootedItems = _builder.CreateLoad(_builder.CreateStructGEP(alloca, 2, "rooted_items"));
+        var reachableItems = _builder.CreateLoad(_builder.CreateStructGEP(alloca, 3, "reachable_items"));
+
+        _statsFormat ??= _emitter.Literal("allocated#=%ld allocated=%ld rooted#=%ld reachable#=%ld\n").Value;
+
+        var printf = _emitter.DefineNativeFunction("printf", _emitter.NativeFunctions.Printf);
+        _builder.CreateCall(printf.Value, new[] { _statsFormat, allocatedItems, allocatedItemSize, rootedItems, reachableItems });
     }
 }

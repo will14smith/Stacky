@@ -30,7 +30,7 @@ public partial class CompilerEmitter
         
         _stackPointer = CreateStack();
 
-        GC = new GarbageCollectedAllocator(_context, _module, _builder);
+        GC = new GarbageCollectedAllocator(_context, _module, _builder, this);
     }
 
     public CompilerValue Load(CompilerValue source)
