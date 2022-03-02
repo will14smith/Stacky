@@ -55,11 +55,13 @@ public class PrintIntrinsic : IIntrinsic
     private static CompilerStack Printf(CompilerFunctionContext context, CompilerStack stack, string formatString)
     {
         var format = context.Emitter.Literal(formatString);
-        stack = stack.Pop(out var value, out _);
+        stack = stack.Pop(out var value, out var removeRoot);
 
         var printf = context.Emitter.DefineNativeFunction("printf", context.Emitter.NativeFunctions.Printf);
         context.Emitter.Call(printf, new CompilerType.Long(), format, value);
 
+        removeRoot();
+        
         return stack;
     }
 }

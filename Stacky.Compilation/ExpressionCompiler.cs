@@ -94,6 +94,11 @@ public partial class ExpressionCompiler
         stack = Compile(stack, binding.Body);
         stack = stack.PopBindings();
 
+        foreach (var (_, value) in bindings)
+        {
+            _allocator.RemoveRoot(value);
+        }
+
         return stack;
     }
 
