@@ -40,6 +40,7 @@ public class GarbageCollectedTypes
             CompilerType.Byte => _u8.Value,
             CompilerType.Long => _i64.Value,
             CompilerType.Function => _ptr.Value,
+            CompilerType.Pointer { Type: CompilerType.Struct @struct } => GetOrCreate(@struct),
             CompilerType.Pointer => _ptr.Value,
             CompilerType.String => _ptr.Value,
             
