@@ -21,6 +21,7 @@ public class GarbageCollectedAllocator
     private readonly Value _gcRootRemoveFn;
     private readonly Value _gcCollectFn;
     private readonly Value _gcStatsFn;
+    private readonly Value _gcDumpFn;
     
     public GarbageCollectedAllocator(LLVMContext context, LLVMModuleRef module, IRBuilder builder, CompilerEmitter emitter)
     {
@@ -53,6 +54,7 @@ public class GarbageCollectedAllocator
         _gcRootRemoveFn = DefineExternFn("gc_root_remove", context.Handle.VoidType, new [] { gcType, dataPointerType });
         _gcCollectFn = DefineExternFn("gc_collect", context.Handle.VoidType, new [] { gcType });
         _gcStatsFn = DefineExternFn("gc_stats", statsType, new [] { gcType });
+        _gcDumpFn = DefineExternFn("gc_dump", context.Handle.VoidType, new [] { gcType });
     }
 
     private Value DefineExternFn(string name, LLVMTypeRef returnType, LLVMTypeRef[] parameterTypes)
@@ -126,5 +128,11 @@ public class GarbageCollectedAllocator
 
         var printf = _emitter.DefineNativeFunction("printf", _emitter.NativeFunctions.Printf);
         _builder.CreateCall(printf.Value, new[] { _statsFormat, allocatedItems, allocatedItemSize, rootedItems, reachableItems });
+    }
+
+    public void Dump()
+    {
+        var gc = _builder.CreateLoad(_gcRef);
+        _builder.CreateCall(_gcDumpFn, new Value[] { gc });
     }
 }

@@ -3,6 +3,7 @@
 #include "root.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 struct gc_t
 {
@@ -46,7 +47,7 @@ void* gc_allocate(struct gc_t* gc, const struct type_t* type) {
     uint64_t header_size = sizeof(struct gc_header_t);
     uint64_t size = type_sizeof(type);
     void* pointer = calloc(1, header_size + size);
-    
+        
     // init header    
     struct gc_header_t* header = pointer;
     header->marked = 0;
@@ -60,7 +61,7 @@ void* gc_allocate(struct gc_t* gc, const struct type_t* type) {
 }
 void* gc_allocate_raw(struct gc_t* gc, uint64_t size) { 
     uint64_t header_size = sizeof(struct gc_header_t);
-    void* pointer = malloc(header_size + size);
+    void* pointer = calloc(1, header_size + size);
 
     // init header    
     struct gc_header_t* header = pointer;
@@ -184,4 +185,63 @@ struct gc_stats_t gc_stats(const struct gc_t* gc) {
     }
     
     return stats;
+}
+
+void gc_dump_entry(struct gc_header_t* entry, int depth) {
+    printf("%*s- %p ", depth, "", gc_header_to_data(entry));
+   
+    if(entry->raw) {
+        printf("raw data - %ld bytes", entry->size);
+    } else {
+        printf("%s - %ld bytes", entry->type->name, type_sizeof(entry->type));
+    }
+    
+    printf("\n");
+
+    if(entry->marked) {
+        return;
+    }
+    
+    if(entry->raw) {
+        return;
+    }
+        
+    entry->marked = 1;
+                
+    const struct type_t* type = entry->type;
+    if(type->kind == TK_PRIMITIVE) {
+        return;
+    }
+    
+    const struct type_field_t** fields = type->data.reference.fields;
+              
+    uint64_t offset = 0;
+    while(*fields != NULL) {
+        const struct type_field_t* field = *fields++;
+                
+        if(field->type->kind == TK_REFERENCE) {
+            void** dataPtr = gc_header_to_data(entry) + offset;
+            if(*dataPtr) {
+                struct gc_header_t* dataHeader = gc_data_to_header(*dataPtr);
+                gc_dump_entry(dataHeader, depth + 2);
+            }
+        }
+        
+        offset += type_field_sizeof(field);
+    }
+}
+
+void gc_dump(struct gc_t* gc) {
+    printf("-- dumping root --\n");
+
+    struct root_iterator_t it;
+    root_iterate_init(gc->root, &it);
+    while(root_iterate_next(&it)) {
+        struct gc_header_t* header = gc_data_to_header((void*)root_iterate_current(&it));       
+        gc_dump_entry(header, 0);
+    }
+    
+    gc_unmark(gc);
+    
+    printf("-- finished dumping root --\n");
 }

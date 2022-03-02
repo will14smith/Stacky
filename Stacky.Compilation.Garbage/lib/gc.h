@@ -22,3 +22,4 @@ void gc_root_remove(struct gc_t* gc, const void* ptr);
 
 void gc_collect(struct gc_t* gc);
 struct gc_stats_t gc_stats(const struct gc_t* gc);
+void gc_dump(struct gc_t* gc);
